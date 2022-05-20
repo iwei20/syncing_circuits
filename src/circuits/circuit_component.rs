@@ -1,47 +1,77 @@
-use std::marker::PhantomData;
+use std::sync::atomic::AtomicPtr;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
+/// A CircuitComponent's physical representation is a rigid, straight circuit element. Yes, this means wires represented by this can only be straight. Just connect multiple.
+/// This struct is meant to aid in both rendering circuit elements and providing a graph node-like interface for circuit loop finding. 
 #[derive(Component)]
-pub struct CircuitComponent<'a, C: CircuitComponentType> {
+pub struct CircuitComponent {
+    comp_type: CircuitComponentType,
     ends_positions: (Transform, Transform),
-    ends_connected: 
-        (
-            Vec<&'a CircuitComponent>, Vec<&'a Self>),
-    phantom_cct: PhantomData<C>
+    ends_connected: (Vec<AtomicPtr<Self>>, Vec<AtomicPtr<Self>>)
 }
 
-/// A trait that shows
-trait CircuitComponentType {}
-pub struct Wire;
-pub struct Resistor { pub resistance: f32 }
-pub struct Capacitor { pub capacitance: f32 }
-pub struct Inductor { pub inductance: f32 }
-pub struct IdealBattery { pub voltage: f32 }
+/// An enum that stores the relevant measure of information for this CircuitComponent
+pub enum CircuitComponentType {
+    Wire,
+    Resistor { resistance: f32 },
+    Capacitor { capacitance: f32 },
+    Inductor { inductance: f32 },
+    IdealBattery { voltage: f32 }
+}
 
-impl<'a, C: CircuitComponentType> CircuitComponent<'a, C> {
+impl CircuitComponent {
 
+    /// Creates a free-floating circuit component with the given type with the ends at the given component.
+    pub fn new(comp_type: CircuitComponentType, ends_positions: (Transform, Transform)) -> Self {
+        Self {
+            comp_type,
+            ends_positions,
+            ends_connected: (Vec::new(), Vec::new())
+        }
+    }
+
+    /// Applies a displacement to the stored position of the "left" end of this component; this may not actually be the left end, but is just one end we will describe as left.
     pub fn move_end_left(&mut self, dx: f32, dy: f32) {
         self.ends_positions.0.translation.x += dx;
         self.ends_positions.0.translation.y += dy;
     }
 
+    /// Applies a displacement to the stored position of the "right" end of this component; this may not actually be the right end, but is just one end we will describe as right.
     pub fn move_end_right(&mut self, dx: f32, dy: f32) {
         self.ends_positions.1.translation.x += dx;
         self.ends_positions.1.translation.y += dy;
     }
 
-    pub fn connect_left<CO: CircuitComponentType>(&mut self, other_component: &'a CircuitComponent<CO>) {
-        self.ends_connected.0.push(other_component);
+    /// Adds a pointer to another component to the "left" end of this component; this may not actually be the left end, but is just one end we will describe as left.
+    pub fn connect_left(&mut self, other_component: &mut Self) {
+        self.ends_connected.0.push(AtomicPtr::new(other_component));
     }
 
-    pub fn connect_right<CO: CircuitComponentType>(&mut self, other_component: &'a CircuitComponent<CO>) {
-        self.ends_connected.1.push(other_component);
+    /// Returns all the components connected to the "left" end of this component; this may not actually be the left end, but is just one end we will describe as left.
+    pub fn left_connections(&self) -> &Vec<AtomicPtr<CircuitComponent>> {
+        &self.ends_connected.0
     }
 
-    pub fn connect<C0: CircuitComponentType, C1: CircuitComponentType>(left: &mut CircuitComponent<C0>, right: &mut CircuitComponent<C1>) {
+    /// Adds a pointer to another component to the "right" end of this component; this may not actually be the right end, but is just one end we will describe as right.
+    pub fn connect_right(&mut self, other_component: &mut Self) {
+        self.ends_connected.1.push(AtomicPtr::new(other_component));
+    }
+
+    /// Returns all the components connected to the "right" end of this component; this may not actually be the right end, but is just one end we will describe as right.
+    pub fn right_connections(&self) -> &Vec<AtomicPtr<CircuitComponent>> {
+        &self.ends_connected.1
+    }
+
+    /// Makes two components point to each other; the left component will point to the right, and vice versa.
+    pub fn connect(left: &mut Self, right: &mut Self) {
         left.connect_right(right);
         right.connect_left(left);
+    }
+
+    /// Returns the 2d mesh of this object at its location.
+    pub fn render(current: f32) {
+        todo!()
     }
 }
 
