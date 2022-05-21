@@ -14,10 +14,11 @@ pub struct CircuitComponent {
 /// An enum that stores the relevant measure of information for this CircuitComponent
 pub enum CircuitComponentType {
     Wire,
-    Resistor { resistance: f32 },
+    Resistor { resistance: f32, has_light: bool },
     Capacitor { capacitance: f32 },
     Inductor { inductance: f32 },
-    IdealBattery { voltage: f32 }
+    IdealBattery { voltage: f32 },
+    Switch { closed: bool }
 }
 
 impl CircuitComponent {
