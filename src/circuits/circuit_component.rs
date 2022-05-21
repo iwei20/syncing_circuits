@@ -1,4 +1,4 @@
-use std::sync::atomic::AtomicPtr;
+use std::sync::{Weak, Arc, RwLock};
 
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
@@ -8,7 +8,7 @@ use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 pub struct CircuitComponent {
     comp_type: CircuitComponentType,
     ends_positions: (Transform, Transform),
-    ends_connected: (Vec<AtomicPtr<Self>>, Vec<AtomicPtr<Self>>)
+    ends_connected: (Vec<Weak<RwLock<Self>>>, Vec<Weak<RwLock<Self>>>)
 }
 
 /// An enum that stores the relevant measure of information for this CircuitComponent
@@ -45,29 +45,29 @@ impl CircuitComponent {
     }
 
     /// Adds a pointer to another component to the "left" end of this component; this may not actually be the left end, but is just one end we will describe as left.
-    pub fn connect_left(&mut self, other_component: &mut Self) {
-        self.ends_connected.0.push(AtomicPtr::new(other_component));
+    pub fn connect_left(&mut self, other_component: Weak<RwLock<Self>>) {
+        self.ends_connected.0.push(other_component);
     }
 
     /// Returns all the components connected to the "left" end of this component; this may not actually be the left end, but is just one end we will describe as left.
-    pub fn left_connections(&self) -> &Vec<AtomicPtr<CircuitComponent>> {
+    pub fn left_connections(&self) -> &Vec<Weak<RwLock<Self>>> {
         &self.ends_connected.0
     }
 
     /// Adds a pointer to another component to the "right" end of this component; this may not actually be the right end, but is just one end we will describe as right.
-    pub fn connect_right(&mut self, other_component: &mut Self) {
-        self.ends_connected.1.push(AtomicPtr::new(other_component));
+    pub fn connect_right(&mut self, other_component: Weak<RwLock<Self>>) {
+        self.ends_connected.1.push(other_component);
     }
 
     /// Returns all the components connected to the "right" end of this component; this may not actually be the right end, but is just one end we will describe as right.
-    pub fn right_connections(&self) -> &Vec<AtomicPtr<CircuitComponent>> {
+    pub fn right_connections(&self) -> &Vec<Weak<RwLock<Self>>> {
         &self.ends_connected.1
     }
 
     /// Makes two components point to each other; the left component will point to the right, and vice versa.
-    pub fn connect(left: &mut Self, right: &mut Self) {
-        left.connect_right(right);
-        right.connect_left(left);
+    pub fn connect(left: Arc<RwLock<Self>>, right: Arc<RwLock<Self>>) {
+        left.write().unwrap().connect_right(Arc::downgrade(&right));
+        right.write().unwrap().connect_left(Arc::downgrade(&left));
     }
 
     /// Returns the 2d mesh of this object at its location.
