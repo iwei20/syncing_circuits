@@ -2,9 +2,9 @@ type Float = f32;
 
 #[derive(Debug)]
 pub struct Rlc {
-    resistance: Float,
-    inductance: Float,
-    capacitance: Float,
+    pub resistance: Float,
+    pub inductance: Float,
+    pub capacitance: Float,
 }
 
 impl Rlc {
