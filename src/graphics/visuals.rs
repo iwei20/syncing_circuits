@@ -23,7 +23,7 @@ pub struct DLCPlugin;
 
 impl Plugin for DLCPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(draw_dlc);
+        app.add_system(draw_dlc);
     }
 }
 
