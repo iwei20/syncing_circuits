@@ -4,9 +4,9 @@ use crate::DisconnectedLightbulbCircuit;
 
 #[derive(Bundle)]
 pub struct DLCBundle {
-    vdlc: VisualDLC,
-    position: DLCPosition,
-    size: DLCSize
+    pub vdlc: VisualDLC,
+    pub position: DLCPosition,
+    pub size: DLCSize
 }
 
 /// Disconnected lightbulb circuit, graphic component
@@ -36,7 +36,7 @@ fn draw_dlc(
     for (visual, position, size) in query.iter() {
         commands.spawn_bundle(MaterialMesh2dBundle {
             mesh: meshes.add(shape::Quad::new(size.0).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::BLACK)),
+            material: materials.add(ColorMaterial::from(Color::WHITE)),
             transform: position.0,
             ..default()
         });
