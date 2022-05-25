@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use syncing_circuits::{graphics::{DLCPlugin, DLCBundle, VisualDLC, DLCPosition, DLCSize}, DisconnectedLightbulbCircuit, Rlc};
+use syncing_circuits::{graphics::{DLCPlugin, DLCBundle, VisualDLC, DLCPosition, DLCSize}, DisconnectedLightbulbCircuit};
 
 fn main() {
     App::new()
