@@ -19,7 +19,7 @@ impl Plugin for DLCPlugin {
 
 fn draw_dlc(
     mut commands: Commands,
-    mut query: Query<(&VisualDLC, &DLCPosition)>,
+    query: Query<(&VisualDLC, &DLCPosition)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>
 ) {
