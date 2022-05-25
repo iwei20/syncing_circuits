@@ -2,15 +2,22 @@ use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
 use crate::DisconnectedLightbulbCircuit;
 
+#[derive(Bundle)]
+pub struct DLCBundle {
+    vdlc: VisualDLC,
+    position: DLCPosition,
+    size: DLCSize
+}
+
 /// Disconnected lightbulb circuit, graphic component
 #[derive(Component)]
-pub struct VisualDLC(DisconnectedLightbulbCircuit);
+pub struct VisualDLC(pub DisconnectedLightbulbCircuit);
 
 #[derive(Component)]
-pub struct DLCPosition(Transform);
+pub struct DLCPosition(pub Transform);
 
 #[derive(Component)]
-pub struct DLCSize(Vec2);
+pub struct DLCSize(pub Vec2);
 
 pub struct DLCPlugin;
 
