@@ -1,15 +1,15 @@
 type Float = f32;
 
 #[derive(Debug)]
-pub struct Rlc {
+pub struct RLCCalculator {
     pub resistance: Float,
     pub inductance: Float,
     pub capacitance: Float,
 }
 
-impl Rlc {
+impl RLCCalculator {
     pub fn with_constants(resistance: Float, inductance: Float, capacitance: Float) -> Self {
-        Rlc {
+        RLCCalculator {
             resistance,
             inductance,
             capacitance,
@@ -17,7 +17,7 @@ impl Rlc {
     }
 
     pub fn new() -> Self {
-        Rlc {
+        RLCCalculator {
             resistance: Float::default(),
             inductance: Float::default(),
             capacitance: Float::default(),

@@ -1,4 +1,4 @@
-mod rlc;
-pub use rlc::*;
-mod lightbulb_loop;
-pub use lightbulb_loop::DisconnectedLightbulbCircuit;
+mod rlc_calculator;
+pub use rlc_calculator::*;
+mod light_calculator;
+pub use light_calculator::DisconnectLightCircuitCalculator;

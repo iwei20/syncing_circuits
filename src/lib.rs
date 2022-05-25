@@ -1,6 +1,6 @@
 mod circuits;
 
-pub use circuits::Rlc;
-pub use circuits::DisconnectedLightbulbCircuit;
+pub use circuits::RLCCalculator;
+pub use circuits::DisconnectLightCircuitCalculator;
 
 pub mod graphics;

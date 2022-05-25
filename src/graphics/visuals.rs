@@ -1,17 +1,17 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
-use crate::DisconnectedLightbulbCircuit;
+use crate::DisconnectLightCircuitCalculator;
 
 #[derive(Bundle)]
 pub struct DLCBundle {
-    pub vdlc: VisualDLC,
+    pub dlc: DisconnectLightCircuit,
     pub position: DLCPosition,
     pub size: DLCSize
 }
 
 /// Disconnected lightbulb circuit, graphic component
 #[derive(Component)]
-pub struct VisualDLC(pub DisconnectedLightbulbCircuit);
+pub struct DisconnectLightCircuit(pub DisconnectLightCircuitCalculator);
 
 #[derive(Component)]
 pub struct DLCPosition(pub Transform);
@@ -29,11 +29,11 @@ impl Plugin for DLCPlugin {
 
 fn draw_dlc(
     mut commands: Commands,
-    query: Query<(&VisualDLC, &DLCPosition, &DLCSize)>,
+    query: Query<(&DisconnectLightCircuit, &DLCPosition, &DLCSize)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>
 ) {
-    for (visual, position, size) in query.iter() {
+    for (circuit, position, size) in query.iter() {
         commands.spawn_bundle(MaterialMesh2dBundle {
             mesh: meshes.add(shape::Quad::new(size.0).into()).into(),
             material: materials.add(ColorMaterial::from(Color::WHITE)),

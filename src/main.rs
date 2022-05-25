@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use syncing_circuits::{graphics::{DLCPlugin, DLCBundle, VisualDLC, DLCPosition, DLCSize}, DisconnectedLightbulbCircuit};
+use syncing_circuits::{graphics::{DLCPlugin, DLCBundle, DisconnectLightCircuit, DLCPosition, DLCSize}, DisconnectLightCircuitCalculator};
 
 fn main() {
     App::new()
@@ -17,7 +17,7 @@ fn start_camera(mut commands: Commands) {
 
 fn spawn_circuits(mut commands: Commands) {
     commands.spawn_bundle(DLCBundle {
-        vdlc: VisualDLC(DisconnectedLightbulbCircuit::with_constants(5.0, 4.0, 3.0)),
+        dlc: DisconnectLightCircuit(DisconnectLightCircuitCalculator::with_constants(5.0, 4.0, 3.0)),
         position: DLCPosition(Transform::from_translation(Vec3::new(250.0, -250.0, 0.0))),
         size: DLCSize(Vec2::new(100.0, 100.0))
     });

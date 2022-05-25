@@ -1,18 +1,18 @@
-use super::Rlc;
+use super::RLCCalculator;
 type Float = f32;
 
-pub struct DisconnectedLightbulbCircuit {
-    circuit: Rlc,
+pub struct DisconnectLightCircuitCalculator {
+    circuit: RLCCalculator,
 }
 
-impl DisconnectedLightbulbCircuit {
+impl DisconnectLightCircuitCalculator {
     pub fn with_constants(resistance: Float, inductance: Float, capacitance: Float) -> Self {
         Self {
-            circuit: Rlc::with_constants(resistance, inductance, capacitance)
+            circuit: RLCCalculator::with_constants(resistance, inductance, capacitance)
         }
     }
 
-    pub fn from_rlc(circuit: Rlc) -> Self {
+    pub fn from_rlc(circuit: RLCCalculator) -> Self {
         Self {
             circuit
         }
