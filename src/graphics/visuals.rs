@@ -9,6 +9,9 @@ pub struct VisualDLC(DisconnectedLightbulbCircuit);
 #[derive(Component)]
 pub struct DLCPosition(Transform);
 
+#[derive(Component)]
+pub struct DLCSize(Vec2);
+
 pub struct DLCPlugin;
 
 impl Plugin for DLCPlugin {
@@ -19,13 +22,13 @@ impl Plugin for DLCPlugin {
 
 fn draw_dlc(
     mut commands: Commands,
-    query: Query<(&VisualDLC, &DLCPosition)>,
+    query: Query<(&VisualDLC, &DLCPosition, &DLCSize)>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>
 ) {
-    for (visual, position) in query.iter() {
+    for (visual, position, size) in query.iter() {
         commands.spawn_bundle(MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Quad::new(Vec2::new(50., 6.)).into()).into(),
+            mesh: meshes.add(shape::Quad::new(size.0).into()).into(),
             material: materials.add(ColorMaterial::from(Color::BLACK)),
             transform: position.0,
             ..default()
