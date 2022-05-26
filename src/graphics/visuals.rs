@@ -21,6 +21,10 @@ pub struct DLCSize(pub Vec2);
 
 pub struct DLCPlugin;
 
+pub struct Time {
+    pub t: f32,
+}
+
 impl Plugin for DLCPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_system(draw_dlc);
@@ -30,6 +34,7 @@ impl Plugin for DLCPlugin {
 fn draw_dlc(
     mut commands: Commands,
     query: Query<(&DisconnectLightCircuit, &DLCPosition, &DLCSize)>,
+    time: Res<Time>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>
 ) {
