@@ -1,17 +1,16 @@
 use std::ops::DerefMut;
 
-use bevy::{prelude::*, sprite::{Mesh2dHandle, SpecializedMaterial2d}};
+use bevy::{prelude::*, sprite::{SpecializedMaterial2d, MaterialMesh2dBundle}};
 
 use crate::DisconnectLightCircuitCalculator;
 
 #[derive(Bundle)]
 pub struct DLCBundle<M: SpecializedMaterial2d> {
     pub dlc: DisconnectLightCircuit,
-    pub position: Transform,
-    pub size: DLCSize,
-    pub circuit_light_mesh: (Mesh2dHandle, Mesh2dHandle),
-    pub circuit_light_material: (Handle<M>, Handle<M>)
-
+    #[bundle]
+    pub circuit: MaterialMesh2dBundle<M>,
+    #[bundle]
+    pub light: MaterialMesh2dBundle<M>
 }
 
 /// Disconnected lightbulb circuit, graphic component
@@ -56,10 +55,18 @@ fn spawn_dlc(
         let light_color = ColorMaterial::from(Color::hsl(0.0, 0.0, 20.0 * circuit.0.lightbulb_power(300.0, 0.0)));
         commands.spawn_bundle(DLCBundle {
             dlc: circuit,
-            position,
-            size: size.clone(),
-            circuit_light_mesh: (meshes.add(shape::Quad::new(size.0).into()).into(), meshes.add(shape::Quad::new(size.0 / 4.0).into()).into()),
-            circuit_light_material: (materials.add(ColorMaterial::from(Color::WHITE)), materials.add(light_color))
+            circuit: MaterialMesh2dBundle { 
+                mesh: meshes.add(shape::Quad::new(size.0).into()).into(), 
+                material: materials.add(ColorMaterial::from(Color::WHITE)), 
+                transform: position, 
+                ..default()
+            },
+            light: MaterialMesh2dBundle { 
+                mesh: meshes.add(shape::Quad::new(size.0 / 4.0).into()).into(), 
+                material: materials.add(light_color), 
+                transform: position * Transform::from_translation((size.0 / 2.0, 0.0).into()), 
+                ..default()
+            }
         });
     }
 }
