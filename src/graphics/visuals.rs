@@ -1,5 +1,3 @@
-use std::ops::DerefMut;
-
 use bevy::{prelude::*, sprite::{MaterialMesh2dBundle}};
 
 use crate::DisconnectLightCircuitCalculator;
@@ -45,7 +43,6 @@ pub struct CircuitTimer {
 
 impl Plugin for DLCPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-
         app.add_startup_system(spawn_dlc)
            .add_system(update_lightbulb);
     }
@@ -71,11 +68,7 @@ fn spawn_dlc(
 
     for (circuit, position, size) in DLC_LIST {
         // Spawn circuit
-        let light_color = ColorMaterial::from(Color::hsl(0.0, 0.0, 20.0 * circuit.0.lightbulb_power(300.0, 0.0)));
-        commands.spawn_bundle(DLCBundle {
-            dlc: circuit,
-        });
-
+        let light_color = ColorMaterial::from(Color::hsl(0.0, 0.0, 20.0 * circuit.1.lightbulb_power(300.0, 0.0)));
         commands.spawn_bundle(CircuitMesh {
             id: CircuitID(circuit.0),
             wrapped: MaterialMesh2dBundle { 
@@ -95,16 +88,29 @@ fn spawn_dlc(
                 ..default()
             }
         });
+
+        commands.spawn_bundle(DLCBundle {
+            dlc: circuit,
+        });
     }
 }
 
 fn update_lightbulb(
-    mut circuit_timer: ResMut<CircuitTimer>,
-    mut query_circuits: Query<&DisconnectLightCircuit>,
-    mut query_light_meshes: Query<(&LightID, &Handle<ColorMaterial>)>,
+    circuit_timer: ResMut<CircuitTimer>,
+    query_circuits: Query<&DisconnectLightCircuit>,
+    query_light_meshes: Query<(&LightID, &Handle<ColorMaterial>)>,
     mut materials: ResMut<Assets<ColorMaterial>>
 ) {
-    query_circuits.for_each(|(circuit)| {
-        materials.get_mut(&lightmesh.0.material).unwrap().color = Color::hsl(0.0, 0.0, 20.0 * circuit.0.lightbulb_power(300.0, circuit_timer.t));
+    query_circuits.for_each(|circuit| {
+        query_light_meshes.for_each(|(id, handle)| {
+            if id.0 == circuit.0 {
+                materials.get_mut(handle).unwrap().color = 
+                    Color::hsl(
+                        0.0,
+                        0.0,
+                        20.0 * circuit.1.lightbulb_power(300.0, circuit_timer.t)
+                    );
+            }
+        });
     });
 }
