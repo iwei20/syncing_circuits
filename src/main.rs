@@ -25,6 +25,6 @@ pub fn update_time(
     if keyboard_input.pressed(KeyCode::Right) { time.t += 1.0; }
     info!("time is now: {}", time.t);
     for circuit in query.iter() {
-        info!("power is now: {}", circuit.0.lightbulb_power(10.0, time.t));
+        info!("power is now: {}", circuit.1.lightbulb_power(10.0, time.t));
      }
 }
