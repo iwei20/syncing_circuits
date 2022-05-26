@@ -21,10 +21,10 @@ pub fn update_time(
     keyboard_input: Res<Input<KeyCode>>,
     query: Query<&DisconnectLightCircuit>,
     ) {
-    if keyboard_input.pressed(KeyCode::Left) { time.t -= 1.0; }
-    if keyboard_input.pressed(KeyCode::Right) { time.t += 1.0; }
+    if keyboard_input.pressed(KeyCode::Left) { time.t -= 0.1; }
+    if keyboard_input.pressed(KeyCode::Right) { time.t += 0.1; }
     info!("time is now: {}", time.t);
     for circuit in query.iter() {
-        info!("power is now: {}", circuit.1.lightbulb_power(10.0, time.t));
+        info!("power is now: {}", circuit.1.lightbulb_power(300.0, time.t));
      }
 }
