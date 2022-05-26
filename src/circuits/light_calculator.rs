@@ -1,5 +1,3 @@
-use bevy::prelude::info;
-
 use super::RLCCalculator;
 type Float = f32;
 
