@@ -7,7 +7,9 @@ use crate::DisconnectLightCircuitCalculator;
 #[derive(Bundle)]
 pub struct DLCBundle {
     pub dlc: DisconnectLightCircuit,
+    #[bundle]
     pub circuit: CircuitMesh,
+    #[bundle]
     pub light: LightMesh
 }
 
@@ -18,11 +20,17 @@ pub struct DisconnectLightCircuit(pub DisconnectLightCircuitCalculator);
 #[derive(Component, Clone)]
 pub struct DLCSize(pub Vec2);
 
-#[derive(Component)]
-pub struct CircuitMesh(pub MaterialMesh2dBundle<ColorMaterial>);
+#[derive(Bundle)]
+pub struct CircuitMesh {
+    #[bundle]
+    pub wrapped: MaterialMesh2dBundle<ColorMaterial>
+}
 
-#[derive(Component)]
-pub struct LightMesh(pub MaterialMesh2dBundle<ColorMaterial>);
+#[derive(Bundle)]
+pub struct LightMesh {
+    #[bundle]
+    pub wrapped: MaterialMesh2dBundle<ColorMaterial>
+}
 
 pub struct DLCPlugin;
 
@@ -59,28 +67,33 @@ fn spawn_dlc(
         let light_color = ColorMaterial::from(Color::hsl(0.0, 0.0, 20.0 * circuit.0.lightbulb_power(300.0, 0.0)));
         commands.spawn_bundle(DLCBundle {
             dlc: circuit,
-            circuit: CircuitMesh(MaterialMesh2dBundle { 
-                mesh: meshes.add(shape::Quad::new(size.0).into()).into(), 
-                material: materials.add(ColorMaterial::from(Color::WHITE)), 
-                transform: position, 
-                ..default()
-            }),
-            light: LightMesh(MaterialMesh2dBundle { 
-                mesh: meshes.add(shape::Quad::new(size.0 / 4.0).into()).into(), 
-                material: materials.add(light_color), 
-                transform: position * Transform::from_translation((size.0 / 2.0, 0.0).into()), 
-                ..default()
-            })
+            circuit: CircuitMesh {
+                wrapped: MaterialMesh2dBundle { 
+                    mesh: meshes.add(shape::Quad::new(size.0).into()).into(), 
+                    material: materials.add(ColorMaterial::from(Color::WHITE)), 
+                    transform: position, 
+                    ..default()
+                }
+            },
+            light: LightMesh {
+                wrapped: MaterialMesh2dBundle { 
+                    mesh: meshes.add(shape::Quad::new(size.0 / 4.0).into()).into(), 
+                    material: materials.add(light_color), 
+                    transform: position * Transform::from_translation((size.0 / 2.0, 0.0).into()), 
+                    ..default()
+                }
+            }
         });
     }
 }
 
 fn update_lightbulb(
     mut circuit_timer: ResMut<CircuitTimer>,
-    mut query: Query<(&DisconnectLightCircuit, &LightMesh)>,
+    mut query: Query<(&DisconnectLightCircuit)>,
     mut materials: ResMut<Assets<ColorMaterial>>
 ) {
+    /* 
     query.for_each(|(circuit, lightmesh)| {
         materials.get_mut(&lightmesh.0.material).unwrap().color = Color::hsl(0.0, 0.0, 20.0 * circuit.0.lightbulb_power(300.0, circuit_timer.t));
-    });
+    });*/
 }
