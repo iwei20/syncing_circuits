@@ -77,10 +77,10 @@ fn spawn_dlc(
 
 fn update_lightbulb(
     mut circuit_timer: ResMut<CircuitTimer>,
-    mut query: Query<(&DisconnectLightCircuit, &Handle<ColorMaterial>)>,
+    mut query: Query<(&DisconnectLightCircuit, &LightMesh)>,
     mut materials: ResMut<Assets<ColorMaterial>>
 ) {
-    query.for_each(|(circuit, color)| {
-        materials.get_mut(color).unwrap().color = Color::hsl(0.0, 0.0, 20.0 * circuit.0.lightbulb_power(300.0, circuit_timer.t));
+    query.for_each(|(circuit, lightmesh)| {
+        materials.get_mut(&lightmesh.0.material).unwrap().color = Color::hsl(0.0, 0.0, 20.0 * circuit.0.lightbulb_power(300.0, circuit_timer.t));
     });
 }
