@@ -5,9 +5,11 @@ use bevy_prototype_lyon::entity::ShapeBundle;
 use crate::DisconnectLightCircuitCalculator;
 
 #[derive(Component)]
+/// A component representing the circuit calculator, rather than the visual part.
 pub struct DLRCCircuit(pub DisconnectLightCircuitCalculator);
 
 #[derive(Component)]
+/// A marker component to indicate this shape is a light.
 pub struct Light;
 
 #[derive(Bundle)]
@@ -36,11 +38,12 @@ impl Plugin for DLCPlugin {
     }
 }
 
+/// A shared resource for timers that provides the current *simulated* time, which can be changed freely.
 pub struct CircuitTimer {
     pub time: f32,
 }
 
-
+/// Spawns all circuit + light entities
 fn spawn_dlc(
     mut commands: Commands,
 ) { 
@@ -82,6 +85,7 @@ fn spawn_dlc(
     });
 }
 
+/// Updates the colors of all light entities based on the time provided by CircuitTimer.
 fn update_lightbulb(
     circuit_timer: ResMut<CircuitTimer>,
     mut query_lights: Query<(&Light, &Parent, &mut DrawMode)>,
@@ -93,7 +97,7 @@ fn update_lightbulb(
         let new_color = Color::hsl(0.0, 0.0, 20.0 * new_power);
         if let DrawMode::Outlined {
             ref mut fill_mode,
-            ref mut outline_mode,
+            outline_mode: _,
         } = *draw_mode
         {
             fill_mode.color = new_color;
