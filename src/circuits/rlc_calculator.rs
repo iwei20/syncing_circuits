@@ -39,7 +39,8 @@ impl RLCCalculator {
     }
 
     /// Returns the current running through the represented RLC series circuit at the given time.
-
+    /// Calculated by w'Rq0/(2L) e^{-Rt/2L} sin(w't)
+    /// 
     /// # Arguments
     /// * `t` - the time from the start time at which the capacitor had charge q0.
     /// 
@@ -58,7 +59,6 @@ impl RLCCalculator {
     /// ```
 
     pub fn current(&self, t: Float) -> Float {
-        //wRq0/(2L) e^{-Rt/2L} sin(wt + phi)
         let half_sqrt_l = 0.5 * self.inductance.recip();
         let c = self.angular_freq() * self.resistance * self.startcharge * half_sqrt_l;
         let tau = -self.resistance * half_sqrt_l;
