@@ -97,7 +97,7 @@ fn update_lightbulb(
         let new_color = Color::hsl(0.0, 0.0, 20.0 * new_power);
         if let DrawMode::Outlined {
             ref mut fill_mode,
-            ref mut outline_mode,
+            outline_mode: _,
         } = *draw_mode
         {
             fill_mode.color = new_color;
