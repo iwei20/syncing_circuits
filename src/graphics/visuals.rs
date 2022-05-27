@@ -6,6 +6,7 @@ use crate::DisconnectLightCircuitCalculator;
 
 #[derive(Component)]
 pub struct DLRCCircuit(pub DisconnectLightCircuitCalculator);
+
 #[derive(Component)]
 pub struct Light;
 
@@ -13,18 +14,17 @@ pub struct Light;
 pub struct CircuitBundle {
     pub circuit: DLRCCircuit,
     #[bundle]
-    pub shape: ShapeBundle,
-    //pub wrapped: MaterialMesh2dBundle<ColorMaterial>
+    pub shape: ShapeBundle
 }
 
 #[derive(Bundle)]
 pub struct LightBundle {
     pub light: Light,
     #[bundle]
-    pub shape: ShapeBundle,
-    //pub wrapped: MaterialMesh2dBundle<ColorMaterial>
+    pub shape: ShapeBundle
 }
 
+/// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness. 
 pub struct DLCPlugin;
 
 impl Plugin for DLCPlugin {
