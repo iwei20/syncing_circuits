@@ -1,6 +1,7 @@
 type Float = f32;
 
 #[derive(Debug)]
+/// Helper struct for calculating RLC series circuit current.
 pub struct RLCCalculator {
     pub startcharge: Float,
     pub resistance: Float,
@@ -9,6 +10,17 @@ pub struct RLCCalculator {
 }
 
 impl RLCCalculator {
+    /// Returns a calculator representing an RLC series circuit with the given constants and phase 0.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `startcharge` - Q0, the starting and maximum charge present on the capacitor.
+    /// * `resistance` - R, the resistance. 
+    /// * `inductance` - L, the inductance.
+    /// * `capacitance` - C, the capacitance.
+    /// 
+    /// # Returns
+    /// A `RLCCalculator` representing an RLC series circuit with the given constants and phase 0.
     pub fn with_constants(startcharge: Float, resistance: Float, inductance: Float, capacitance: Float) -> Self {
         RLCCalculator {
             startcharge,
@@ -18,26 +30,33 @@ impl RLCCalculator {
         }
     }
 
-    ///this is the omega prime of the circuit 
+    /// Omega prime, or the angular frequency of an RLC circuit;
+    /// sqrt(w^2 - (R/2L)^2)
     fn angular_freq(&self) -> Float {
         let w_squared = (self.inductance * self.capacitance).recip();
         let modifier = self.resistance * 0.5 * self.inductance.recip();
         (w_squared - modifier * modifier).sqrt()
     }
 
-    ///q0 is the intial charge on the capacitor
-    ///t is the time from the start time at which the capacitor had charge q0
-    ///this sends the magnitude and direction of the current,
-    ///positave going to the right
-    ///below shows the circuit a immediantly after a positive charge q0 was put in the capacitor
-    ///
-    ///            i
-    ///           -->
-    ///     ----C-----
-    ///     |        |
-    ///     L        |
-    ///     |        |
-    ///     ----R-----
+    /// Returns the current running through the represented RLC series circuit at the given time.
+
+    /// # Arguments
+    /// * `t` - the time from the start time at which the capacitor had charge q0.
+    /// 
+    /// # Returns
+    /// * A `f32` giving the current running through the circuit, where positive current runs in the direction from the negative plate to the positive plate.
+    /// 
+    /// i.e.,
+    /// ```text
+    ///              i
+    ///         - + -->
+    ///     ----| |----
+    ///     |    C    |
+    ///     L         |
+    ///     |         |
+    ///     ----R------
+    /// ```
+
     pub fn current(&self, t: Float) -> Float {
         //wRq0/(2L) e^{-Rt/2L} sin(wt + phi)
         let half_sqrt_l = 0.5 * self.inductance.recip();
