@@ -44,8 +44,8 @@ pub struct CircuitTimer {
 fn spawn_dlc(
     mut commands: Commands,
 ) { 
-    let dlcc = DLRCCircuit(DisconnectLightCircuitCalculator::with_constants(0.2, 4.0, 6.0));
-    let light_color = Color::hsl(0.0, 0.0, 20.0 * dlcc.0.lightbulb_power(300.0, 0.0));
+    let dlcc = DLRCCircuit(DisconnectLightCircuitCalculator::with_constants(300.0, 0.2, 4.0, 6.0));
+    let light_color = Color::hsl(0.0, 0.0, 20.0 * dlcc.0.lightbulb_power(0.0));
     let square = shapes::Rectangle {
         extents: Vec2::splat(100.0),
         ..shapes::Rectangle::default()
@@ -89,7 +89,7 @@ fn update_lightbulb(
 ) {
     for (_, parent, mut draw_mode) in query_lights.iter_mut() {
         let parent_circuit = query_circs.get(parent.0).expect("couldn't find child to light");
-        let new_power = parent_circuit.0.lightbulb_power(300.0, circuit_timer.time);
+        let new_power = parent_circuit.0.lightbulb_power(circuit_timer.time);
         let new_color = Color::hsl(0.0, 0.0, 20.0 * new_power);
         if let DrawMode::Outlined {
             ref mut fill_mode,

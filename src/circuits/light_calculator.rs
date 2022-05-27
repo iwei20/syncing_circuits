@@ -6,9 +6,9 @@ pub struct DisconnectLightCircuitCalculator {
 }
 
 impl DisconnectLightCircuitCalculator {
-    pub fn with_constants(resistance: Float, inductance: Float, capacitance: Float) -> Self {
+    pub fn with_constants(startcharge: Float, resistance: Float, inductance: Float, capacitance: Float) -> Self {
         Self {
-            circuit: RLCCalculator::with_constants(resistance, inductance, capacitance)
+            circuit: RLCCalculator::with_constants(startcharge, resistance, inductance, capacitance)
         }
     }
 
@@ -18,8 +18,8 @@ impl DisconnectLightCircuitCalculator {
         }
     }
 
-    pub fn lightbulb_power(&self, q0: Float, t: Float) -> Float {
-        let current = self.circuit.current(q0, t);
+    pub fn lightbulb_power(&self, t: Float) -> Float {
+        let current = self.circuit.current(t);
         current * current * self.circuit.resistance
     }
 }

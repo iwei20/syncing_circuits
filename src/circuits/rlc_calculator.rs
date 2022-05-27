@@ -2,14 +2,16 @@ type Float = f32;
 
 #[derive(Debug)]
 pub struct RLCCalculator {
+    pub startcharge: Float,
     pub resistance: Float,
     pub inductance: Float,
     pub capacitance: Float,
 }
 
 impl RLCCalculator {
-    pub fn with_constants(resistance: Float, inductance: Float, capacitance: Float) -> Self {
+    pub fn with_constants(startcharge: Float, resistance: Float, inductance: Float, capacitance: Float) -> Self {
         RLCCalculator {
+            startcharge,
             resistance,
             inductance,
             capacitance,
@@ -18,6 +20,7 @@ impl RLCCalculator {
 
     pub fn new() -> Self {
         RLCCalculator {
+            startcharge: Float::default(),
             resistance: Float::default(),
             inductance: Float::default(),
             capacitance: Float::default(),
@@ -44,10 +47,10 @@ impl RLCCalculator {
     ///     L        |
     ///     |        |
     ///     ----R-----
-    pub fn current(&self, q0: Float, t: Float) -> Float {
+    pub fn current(&self, t: Float) -> Float {
         //wRq0/(2L) e^{-Rt/2L} sin(wt + phi)
         let half_sqrt_l = 0.5 * self.inductance.recip();
-        let c = self.angular_freq() * self.resistance * q0 * half_sqrt_l;
+        let c = self.angular_freq() * self.resistance * self.startcharge * half_sqrt_l;
         let tau = -self.resistance * half_sqrt_l;
         c * (tau * t).exp() * (self.angular_freq() * t).sin()
     } 
