@@ -18,15 +18,6 @@ impl RLCCalculator {
         }
     }
 
-    pub fn new() -> Self {
-        RLCCalculator {
-            startcharge: Float::default(),
-            resistance: Float::default(),
-            inductance: Float::default(),
-            capacitance: Float::default(),
-        }
-    }
-
     ///this is the omega prime of the circuit 
     fn angular_freq(&self) -> Float {
         let w_squared = (self.inductance * self.capacitance).recip();
