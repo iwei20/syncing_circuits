@@ -2,7 +2,7 @@ use super::RLCCalculator;
 type Float = f32;
 
 pub struct DisconnectLightCircuitCalculator {
-    circuit: RLCCalculator,
+    pub circuit: RLCCalculator,
 }
 
 impl DisconnectLightCircuitCalculator {

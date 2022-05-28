@@ -1,10 +1,11 @@
 use bevy::prelude::*;
-use syncing_circuits::{graphics::DLCPlugin, graphics::CircuitTimer};
+use syncing_circuits::{graphics::DLCPlugin, graphics::CircuitTimer, graphics::SideBarPlugin};
 
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(SideBarPlugin)
         .add_startup_system(start_camera)
         .add_plugin(DLCPlugin)
         .add_system(update_time)
