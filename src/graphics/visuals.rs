@@ -5,26 +5,28 @@ use bevy_prototype_lyon::entity::ShapeBundle;
 use crate::DisconnectLightCircuitCalculator;
 
 #[derive(Component)]
+/// A component representing the circuit calculator, rather than the visual part.
 pub struct DLRCCircuit(pub DisconnectLightCircuitCalculator);
+
 #[derive(Component)]
+/// A marker component to indicate this shape is a light.
 pub struct Light;
 
 #[derive(Bundle)]
 pub struct CircuitBundle {
     pub circuit: DLRCCircuit,
     #[bundle]
-    pub shape: ShapeBundle,
-    //pub wrapped: MaterialMesh2dBundle<ColorMaterial>
+    pub shape: ShapeBundle
 }
 
 #[derive(Bundle)]
 pub struct LightBundle {
     pub light: Light,
     #[bundle]
-    pub shape: ShapeBundle,
-    //pub wrapped: MaterialMesh2dBundle<ColorMaterial>
+    pub shape: ShapeBundle
 }
 
+/// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness. 
 pub struct DLCPlugin;
 
 impl Plugin for DLCPlugin {
@@ -36,16 +38,17 @@ impl Plugin for DLCPlugin {
     }
 }
 
+/// A shared resource for timers that provides the current *simulated* time, which can be changed freely.
 pub struct CircuitTimer {
     pub time: f32,
 }
 
-
+/// Spawns all circuit + light entities
 fn spawn_dlc(
     mut commands: Commands,
 ) { 
-    let dlcc = DLRCCircuit(DisconnectLightCircuitCalculator::with_constants(0.2, 4.0, 6.0));
-    let light_color = Color::hsl(0.0, 0.0, 20.0 * dlcc.0.lightbulb_power(300.0, 0.0));
+    let dlcc = DLRCCircuit(DisconnectLightCircuitCalculator::with_constants(300.0, 0.2, 4.0, 6.0));
+    let light_color = Color::hsl(0.0, 0.0, 20.0 * dlcc.0.lightbulb_power(0.0));
     let square = shapes::Rectangle {
         extents: Vec2::splat(100.0),
         ..shapes::Rectangle::default()
@@ -82,6 +85,7 @@ fn spawn_dlc(
     });
 }
 
+/// Updates the colors of all light entities based on the time provided by CircuitTimer.
 fn update_lightbulb(
     circuit_timer: ResMut<CircuitTimer>,
     mut query_lights: Query<(&Light, &Parent, &mut DrawMode)>,
@@ -89,7 +93,7 @@ fn update_lightbulb(
 ) {
     for (_, parent, mut draw_mode) in query_lights.iter_mut() {
         let parent_circuit = query_circs.get(parent.0).expect("couldn't find child to light");
-        let new_power = parent_circuit.0.lightbulb_power(300.0, circuit_timer.time);
+        let new_power = parent_circuit.0.lightbulb_power(circuit_timer.time);
         let new_color = Color::hsl(0.0, 0.0, 20.0 * new_power);
         if let DrawMode::Outlined {
             ref mut fill_mode,
