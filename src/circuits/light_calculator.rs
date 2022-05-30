@@ -4,7 +4,7 @@ type Float = f32;
 #[derive(Debug)]
 /// Helper struct for calculating the power of a lightbulb connected to a RLC series circuit.
 pub struct DisconnectLightCircuitCalculator {
-    circuit: RLCCalculator,
+    pub circuit: RLCCalculator,
 }
 
 impl DisconnectLightCircuitCalculator {
