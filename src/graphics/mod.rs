@@ -1,5 +1,5 @@
-mod visuals;
 mod sliders;
+mod visuals;
 
-pub use visuals::*;
 pub use sliders::*;
+pub use visuals::*;
