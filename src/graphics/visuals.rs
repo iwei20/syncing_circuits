@@ -23,7 +23,9 @@ pub struct CircuitBundle {
 #[derive(Bundle)]
 pub struct LightBundle {
     pub light: Light,
-    #[bundle] pub shape: ShapeBundle }
+    #[bundle]
+    pub shape: ShapeBundle
+}
 
 /// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness. 
 pub struct DLCPlugin;
@@ -36,6 +38,7 @@ impl Plugin for DLCPlugin {
             .add_system(update_lightbulb);
     }
 }
+
 
 pub const MAX_CIRCUIT_TIME: f32 = 100.0;
 pub const MIN_CIRCUIT_TIME: f32 = 0.0;
