@@ -3,6 +3,7 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::entity::ShapeBundle;
 
 use crate::DisconnectLightCircuitCalculator;
+use std::cmp::PartialEq;
 
 #[derive(Component)]
 /// A component representing the circuit calculator, rather than the visual part.
@@ -22,9 +23,7 @@ pub struct CircuitBundle {
 #[derive(Bundle)]
 pub struct LightBundle {
     pub light: Light,
-    #[bundle]
-    pub shape: ShapeBundle
-}
+    #[bundle] pub shape: ShapeBundle }
 
 /// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness. 
 pub struct DLCPlugin;
@@ -32,15 +31,25 @@ pub struct DLCPlugin;
 impl Plugin for DLCPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_startup_system(spawn_dlc)
-            .insert_resource( CircuitTimer { time: 0.0 } )
+            .insert_resource( CircuitTimer { time: MIN_CIRCUIT_TIME, mode: CircuitTimerMode::Pause } )
             .add_plugin(ShapePlugin)
             .add_system(update_lightbulb);
     }
 }
 
+pub const MAX_CIRCUIT_TIME: f32 = 100.0;
+pub const MIN_CIRCUIT_TIME: f32 = 0.0;
+
+#[derive(PartialEq)]
+pub enum CircuitTimerMode {
+    Play,
+    Pause,
+}
+
 /// A shared resource for timers that provides the current *simulated* time, which can be changed freely.
 pub struct CircuitTimer {
     pub time: f32,
+    pub mode: CircuitTimerMode
 }
 
 /// Spawns all circuit + light entities

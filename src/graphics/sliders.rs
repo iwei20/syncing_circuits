@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiPlugin, EguiContext};
 use bevy_egui::egui::{Align2, plot::{Value, Values, Plot, Line}};
 
-use crate::graphics::{DLRCCircuit, CircuitTimer};
+use crate::graphics::{DLRCCircuit, CircuitTimer, MAX_CIRCUIT_TIME, MIN_CIRCUIT_TIME, CircuitTimerMode};
 
 ///Plugin to add slide bar of sliders
 pub struct SideBarPlugin;
@@ -29,7 +29,7 @@ fn left_slider_frame(
         .frame(egui::Frame::dark_canvas(&egui_context.ctx_mut().style()))
         .show(egui_context.ctx_mut(), |ui| {
             //remeber to make this max value of time match with the graph in the function below
-            ui.add(egui::Slider::new(&mut time.time, 0.0..=100.0).text("Time").fixed_decimals(0));
+            ui.add(egui::Slider::new(&mut time.time, MIN_CIRCUIT_TIME..=MAX_CIRCUIT_TIME).text("Time").fixed_decimals(0));
             for mut dlcc in query_circs.iter_mut() {
                 let r = &mut dlcc.0.circuit.resistance;
                 //TODO: loosen the limit on small R
@@ -44,6 +44,14 @@ fn left_slider_frame(
                 let c = &mut dlcc.0.circuit.capacitance;
                 ui.add(egui::Slider::new(c, 1.0..=10.0).text("C").fixed_decimals(2));
             }
+            ui.with_layout(egui::Layout::left_to_right(), |ui| {
+                //start, stop, and rewind buttons
+                ui.selectable_value(&mut time.mode, CircuitTimerMode::Play, "Play");
+                ui.selectable_value(&mut time.mode, CircuitTimerMode::Pause, "Pause");
+                if ui.button("Reset").clicked() { 
+                    time.time = MIN_CIRCUIT_TIME; 
+                }
+            });
         });
 }
 

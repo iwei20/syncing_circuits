@@ -1,6 +1,5 @@
 use bevy::prelude::*;
-use syncing_circuits::{graphics::DLCPlugin, graphics::CircuitTimer, graphics::SideBarPlugin};
-
+use syncing_circuits::graphics::{DLCPlugin, CircuitTimer, SideBarPlugin, MIN_CIRCUIT_TIME, MAX_CIRCUIT_TIME, CircuitTimerMode};
 
 fn main() {
     App::new()
@@ -22,5 +21,11 @@ pub fn update_time(
     keyboard_input: Res<Input<KeyCode>>,
     ) {
     if keyboard_input.pressed(KeyCode::Left) { time.time -= 0.1; }
-    if keyboard_input.pressed(KeyCode::Right) { time.time += 0.1; }
+    if keyboard_input.pressed(KeyCode::Right) || time.mode == CircuitTimerMode::Play { time.time += 0.1; }
+
+    if time.time > MAX_CIRCUIT_TIME {
+        time.time = MAX_CIRCUIT_TIME;
+        time.mode = CircuitTimerMode::Pause;
+    }
+    time.time = time.time.max(MIN_CIRCUIT_TIME);
 }
