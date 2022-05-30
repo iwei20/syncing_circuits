@@ -28,6 +28,8 @@ fn left_slider_frame(
         .collapsible(false)
         .frame(egui::Frame::dark_canvas(&egui_context.ctx_mut().style()))
         .show(egui_context.ctx_mut(), |ui| {
+            //remeber to make this max value of time match with the graph in the function below
+            ui.add(egui::Slider::new(&mut time.time, 0.0..=100.0).text("Time").fixed_decimals(0));
             for mut dlcc in query_circs.iter_mut() {
                 let r = &mut dlcc.0.circuit.resistance;
                 //TODO: loosen the limit on small R
@@ -42,8 +44,6 @@ fn left_slider_frame(
                 let c = &mut dlcc.0.circuit.capacitance;
                 ui.add(egui::Slider::new(c, 1.0..=10.0).text("C").fixed_decimals(2));
             }
-            //remeber to make this max value of time match with the graph in the function below
-            ui.add(egui::Slider::new(&mut time.time, 0.0..=100.0).text("Time").fixed_decimals(0));
         });
 }
 
