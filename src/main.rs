@@ -3,6 +3,7 @@ use syncing_circuits::graphics::{DLCPlugin, CircuitTimer, SideBarPlugin, MIN_CIR
 
 fn main() {
     App::new()
+        .insert_resource( Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .add_plugin(SideBarPlugin)
         .add_startup_system(start_camera)
