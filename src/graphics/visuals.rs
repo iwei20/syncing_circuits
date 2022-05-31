@@ -128,7 +128,7 @@ fn update_lightbulb(
         }
 
         // Check how close it is to a multiple
-        let epsilon = 0.01;
+        let epsilon = 0.003;
         if ((circuit_timer.time + period / 4.0) / time_to_peaks - ((circuit_timer.time + period / 4.0) / time_to_peaks).round()).abs() < epsilon && ((circuit_timer.time + period / 4.0) / time_to_peaks).round() != 0.0 {
             info!("Circle spawned");
             let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
