@@ -37,7 +37,7 @@ impl RLCCalculator {
 
     /// Omega prime, or the angular frequency of an RLC circuit;
     /// sqrt(w^2 - (R/2L)^2)
-    fn angular_freq(&self) -> Float {
+    pub fn angular_freq(&self) -> Float {
         let w_squared = (self.inductance * self.capacitance).recip();
         let modifier = self.resistance * 0.5 * self.inductance.recip();
         (w_squared - modifier * modifier).sqrt()
