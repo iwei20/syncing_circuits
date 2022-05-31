@@ -168,8 +168,14 @@ fn calculate_circle_alpha(radius: f32) -> f32 {
     (-radius / 20.0).exp()
 }
 
-fn expand_circles(mut query: Query<(&mut CircleRadius, &mut Path, &mut DrawMode)>) {
-    for (mut radius, mut path, mut draw_mode) in query.iter_mut() {
+fn expand_circles(mut commands: Commands, mut query: Query<(Entity, &mut CircleRadius, &mut Path, &mut DrawMode)>) {
+    for (entity, mut radius, mut path, mut draw_mode) in query.iter_mut() {
+        if radius.0 > 200.0 {
+            info!("Circle despawned");
+            commands
+                .entity(entity)
+                .despawn();
+        }
         *radius = CircleRadius(radius.0 + 0.4);
         let new_circle = shapes::Circle {
             radius: radius.0,
