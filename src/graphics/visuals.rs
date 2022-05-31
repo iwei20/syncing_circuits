@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_prototype_lyon::{entity::ShapeBundle, prelude::{GeometryBuilder, DrawMode, FillMode, StrokeMode}, shapes, plugin::ShapePlugin};
 
 use crate::DisconnectLightCircuitCalculator;
 use std::cmp::PartialEq;
@@ -30,7 +31,9 @@ pub struct DLCPlugin;
 
 impl Plugin for DLCPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(spawn_dlc)
+        app
+            .add_plugin(ShapePlugin)
+            .add_startup_system(spawn_dlc)
             .insert_resource(CircuitTimer {
                 time: MIN_CIRCUIT_TIME,
                 mode: CircuitTimerMode::Pause,
@@ -70,6 +73,11 @@ fn spawn_dlc(
         TextureAtlas::from_grid(light_texture_handle, Vec2::new(16.0, 48.0), 4, 1);
     let light_texture_atlus_handle = texture_atlases.add(light_texture_atlas);
 
+    let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
+        radius: 100.0,
+        ..shapes::Circle::default()
+    });
+
     commands
         .spawn_bundle(CircuitBundle {
             circuit: dlcc,
@@ -91,10 +99,12 @@ fn spawn_dlc(
                 },
             });
         });
+        
 }
 
 /// Updates the colors of all light entities based on the time provided by CircuitTimer.
 fn update_lightbulb(
+    mut commands: Commands,
     circuit_timer: ResMut<CircuitTimer>,
     mut query_lights: Query<(&Parent, &mut TextureAtlasSprite), With<Light>>,
     query_circs: Query<&DLRCCircuit>,
@@ -104,6 +114,9 @@ fn update_lightbulb(
             .get(parent.0)
             .expect("couldn't find child to light");
         let new_power = parent_circuit.0.lightbulb_power(circuit_timer.time);
+        let period = std::f32::consts::TAU / parent_circuit.0.circuit.angular_freq();
+        let time_to_peaks = period / 2.0;
+
         if new_power < 0.05 {
             sprite.index = 0;
         } else if new_power < 0.1 {
@@ -113,5 +126,36 @@ fn update_lightbulb(
         } else {
             sprite.index = 3;
         }
+
+        // Check how close it is to a multiple
+        let epsilon = 0.01;
+        if ((circuit_timer.time + period / 4.0) / time_to_peaks - ((circuit_timer.time + period / 4.0) / time_to_peaks).round()).abs() < epsilon && ((circuit_timer.time + period / 4.0) / time_to_peaks).round() != 0.0 {
+            info!("Circle spawned");
+            let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
+                radius: 0.0,
+                ..shapes::Circle::default()
+            });
+            commands
+                .entity(**parent)
+                .with_children(|parent| {
+                    parent.spawn_bundle(
+                        circle_builder.build(
+                            DrawMode::Outlined {
+                                fill_mode: FillMode::color(Color::WHITE),
+                                outline_mode: StrokeMode::new(Color::BLACK, 1.0),
+                            },
+                            Transform::from_translation(Vec3::new(0.0, 25.0, 20.0))
+                        )
+                    );
+                });
+        }
+        
     }
+}
+
+fn expand_circles(
+    time: Res<Time>,
+    mut query: Query<()>
+) {
+
 }
