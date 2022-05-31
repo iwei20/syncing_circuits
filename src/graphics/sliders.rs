@@ -1,16 +1,20 @@
 use bevy::prelude::*;
-use bevy_egui::{egui, EguiPlugin, EguiContext};
-use bevy_egui::egui::{Align2, plot::{Value, Values, Plot, Line}};
+use bevy_egui::egui::{
+    plot::{Line, Plot, Value, Values},
+    Align2,
+};
+use bevy_egui::{egui, EguiContext, EguiPlugin};
 
-use crate::graphics::{DLRCCircuit, CircuitTimer, MAX_CIRCUIT_TIME, MIN_CIRCUIT_TIME, CircuitTimerMode};
+use crate::graphics::{
+    CircuitTimer, CircuitTimerMode, DLRCCircuit, MAX_CIRCUIT_TIME, MIN_CIRCUIT_TIME,
+};
 
 ///Plugin to add slide bar of sliders
 pub struct SideBarPlugin;
 
 impl Plugin for SideBarPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_plugin(EguiPlugin)
+        app.add_plugin(EguiPlugin)
             .add_system(left_slider_frame)
             .add_system(circuit_plot);
     }
@@ -21,7 +25,7 @@ fn left_slider_frame(
     mut egui_context: ResMut<EguiContext>,
     mut query_circs: Query<&mut DLRCCircuit>,
     mut time: ResMut<CircuitTimer>,
-    ) {
+) {
     egui::Window::new("Circuit")
         .anchor(Align2::LEFT_CENTER, [0.0, -200.0])
         .fixed_size([200.0, 200.0])
@@ -29,7 +33,11 @@ fn left_slider_frame(
         .frame(egui::Frame::dark_canvas(&egui_context.ctx_mut().style()))
         .show(egui_context.ctx_mut(), |ui| {
             //remeber to make this max value of time match with the graph in the function below
-            ui.add(egui::Slider::new(&mut time.time, MIN_CIRCUIT_TIME..=MAX_CIRCUIT_TIME).text("Time").fixed_decimals(0));
+            ui.add(
+                egui::Slider::new(&mut time.time, MIN_CIRCUIT_TIME..=MAX_CIRCUIT_TIME)
+                    .text("Time")
+                    .fixed_decimals(0),
+            );
             for mut dlcc in query_circs.iter_mut() {
                 let r = &mut dlcc.0.circuit.resistance;
                 //TODO: loosen the limit on small R
@@ -48,17 +56,14 @@ fn left_slider_frame(
                 //start, stop, and rewind buttons
                 ui.selectable_value(&mut time.mode, CircuitTimerMode::Play, "Play");
                 ui.selectable_value(&mut time.mode, CircuitTimerMode::Pause, "Pause");
-                if ui.button("Reset").clicked() { 
-                    time.time = MIN_CIRCUIT_TIME; 
+                if ui.button("Reset").clicked() {
+                    time.time = MIN_CIRCUIT_TIME;
                 }
             });
         });
 }
 
-fn circuit_plot(
-    mut egui_ctx: ResMut<EguiContext>,
-    query_circs: Query<&DLRCCircuit>,
-    ) {
+fn circuit_plot(mut egui_ctx: ResMut<EguiContext>, query_circs: Query<&DLRCCircuit>) {
     egui::Window::new("Current")
         .anchor(Align2::RIGHT_TOP, [0.0, 100.0])
         .fixed_size([400.0, 400.0])
