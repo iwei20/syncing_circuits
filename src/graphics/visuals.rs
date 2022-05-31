@@ -149,7 +149,7 @@ fn update_lightbulb(
                             radius: CircleRadius(starting_radius),
                             shape_bundle: circle_builder.build(
                                 DrawMode::Outlined {
-                                    fill_mode: FillMode::color(Color::rgba(0.0, 0.0, 0.0, 255.0)),
+                                    fill_mode: FillMode::color(Color::hsla(0.0, 0.0, 0.0, 0.0)),
                                     outline_mode: StrokeMode::new(Color::BLACK, 1.0),
                                 },
                                 Transform::from_translation(Vec3::new(0.0, 25.0, 20.0))
