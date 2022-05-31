@@ -165,12 +165,12 @@ fn update_lightbulb(
 }
 
 fn calculate_circle_alpha(radius: f32) -> f32 {
-    (-radius / 100.0) + 1.0
+    (-radius / 20.0).exp()
 }
 
 fn expand_circles(mut query: Query<(&mut CircleRadius, &mut Path, &mut DrawMode)>) {
     for (mut radius, mut path, mut draw_mode) in query.iter_mut() {
-        *radius = CircleRadius(radius.0 + 0.2);
+        *radius = CircleRadius(radius.0 + 0.4);
         let new_circle = shapes::Circle {
             radius: radius.0,
             ..shapes::Circle::default()
