@@ -119,8 +119,6 @@ fn update_lightbulb(
             .get(parent.0)
             .expect("couldn't find child to light");
         let new_power = parent_circuit.0.lightbulb_power(circuit_timer.time);
-        let period = std::f32::consts::TAU / parent_circuit.0.circuit.angular_freq();
-        let time_to_peaks = period / 2.0;
 
         if new_power < 0.05 {
             sprite.index = 0;
@@ -132,9 +130,13 @@ fn update_lightbulb(
             sprite.index = 3;
         }
 
-        // Check how close it is to a multiple
+        // Check if the current time (phase shifted) is a multiple of a half period
         let epsilon = 0.003;
-        if ((circuit_timer.time + period / 4.0) / time_to_peaks - ((circuit_timer.time + period / 4.0) / time_to_peaks).round()).abs() < epsilon && ((circuit_timer.time + period / 4.0) / time_to_peaks).round() != 0.0 {
+        let period = std::f32::consts::TAU / parent_circuit.0.circuit.angular_freq();
+        let time_to_peaks = period / 2.0;
+        let time_multiple = (circuit_timer.time + period / 4.0) / time_to_peaks;
+        let closest_integer_multiple = time_multiple.round();
+        if (time_multiple - closest_integer_multiple).abs() < epsilon && closest_integer_multiple != 0.0 {
             info!("Circle spawned");
             let starting_radius = 0.0;
             let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
@@ -150,7 +152,7 @@ fn update_lightbulb(
                             shape_bundle: circle_builder.build(
                                 DrawMode::Outlined {
                                     fill_mode: FillMode::color(Color::hsla(0.0, 0.0, 0.0, 0.0)),
-                                    outline_mode: StrokeMode::new(Color::BLACK, 1.0),
+                                    outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, calculate_circle_alpha(starting_radius)), 1.0),
                                 },
                                 Transform::from_translation(Vec3::new(0.0, 25.0, 20.0))
                             )
@@ -162,12 +164,20 @@ fn update_lightbulb(
     }
 }
 
-fn expand_circles(mut query: Query<(&mut CircleRadius, &mut Path)>) {
-    for (mut radius, mut path) in query.iter_mut() {
+fn calculate_circle_alpha(radius: f32) -> f32 {
+    (-radius / 100.0) + 1.0
+}
+
+fn expand_circles(mut query: Query<(&mut CircleRadius, &mut Path, &mut DrawMode)>) {
+    for (mut radius, mut path, mut draw_mode) in query.iter_mut() {
         *radius = CircleRadius(radius.0 + 0.2);
         let new_circle = shapes::Circle {
             radius: radius.0,
             ..shapes::Circle::default()
+        };
+        *draw_mode = DrawMode::Outlined {
+            fill_mode: FillMode::color(Color::hsla(0.0, 0.0, 0.0, 0.0)),
+            outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, calculate_circle_alpha(radius.0)), 1.0),
         };
         *path = ShapePath::build_as(&new_circle);
     }
