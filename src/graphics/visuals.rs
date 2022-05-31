@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_prototype_lyon::{entity::ShapeBundle, prelude::{GeometryBuilder, DrawMode, FillMode, StrokeMode}, shapes, plugin::ShapePlugin};
+use bevy_prototype_lyon::{entity::ShapeBundle, prelude::{GeometryBuilder, DrawMode, FillMode, StrokeMode, Path, ShapePath}, shapes, plugin::ShapePlugin};
 
 use crate::DisconnectLightCircuitCalculator;
 use std::cmp::PartialEq;
@@ -11,6 +11,9 @@ pub struct DLRCCircuit(pub DisconnectLightCircuitCalculator);
 #[derive(Component)]
 /// A marker component to indicate this shape is a light.
 pub struct Light;
+
+#[derive(Component)]
+pub struct CircleRadius(pub f32);
 
 #[derive(Bundle)]
 pub struct CircuitBundle {
@@ -26,6 +29,12 @@ pub struct LightBundle {
     pub sprite_sheet_bundle: SpriteSheetBundle,
 }
 
+#[derive(Bundle)]
+pub struct CircleBundle {
+    pub radius: CircleRadius,
+    #[bundle]
+    pub shape_bundle: ShapeBundle
+}
 /// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness.
 pub struct DLCPlugin;
 
@@ -38,7 +47,8 @@ impl Plugin for DLCPlugin {
                 time: MIN_CIRCUIT_TIME,
                 mode: CircuitTimerMode::Pause,
             })
-            .add_system(update_lightbulb);
+            .add_system(update_lightbulb)
+            .add_system(expand_circles);
     }
 }
 
@@ -72,11 +82,6 @@ fn spawn_dlc(
     let light_texture_atlas =
         TextureAtlas::from_grid(light_texture_handle, Vec2::new(16.0, 48.0), 4, 1);
     let light_texture_atlus_handle = texture_atlases.add(light_texture_atlas);
-
-    let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
-        radius: 100.0,
-        ..shapes::Circle::default()
-    });
 
     commands
         .spawn_bundle(CircuitBundle {
@@ -131,21 +136,25 @@ fn update_lightbulb(
         let epsilon = 0.003;
         if ((circuit_timer.time + period / 4.0) / time_to_peaks - ((circuit_timer.time + period / 4.0) / time_to_peaks).round()).abs() < epsilon && ((circuit_timer.time + period / 4.0) / time_to_peaks).round() != 0.0 {
             info!("Circle spawned");
+            let starting_radius = 0.0;
             let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
-                radius: 0.0,
+                radius: starting_radius,
                 ..shapes::Circle::default()
             });
             commands
                 .entity(**parent)
                 .with_children(|parent| {
                     parent.spawn_bundle(
-                        circle_builder.build(
-                            DrawMode::Outlined {
-                                fill_mode: FillMode::color(Color::WHITE),
-                                outline_mode: StrokeMode::new(Color::BLACK, 1.0),
-                            },
-                            Transform::from_translation(Vec3::new(0.0, 25.0, 20.0))
-                        )
+                        CircleBundle {
+                            radius: CircleRadius(starting_radius),
+                            shape_bundle: circle_builder.build(
+                                DrawMode::Outlined {
+                                    fill_mode: FillMode::color(Color::rgba(0.0, 0.0, 0.0, 255.0)),
+                                    outline_mode: StrokeMode::new(Color::BLACK, 1.0),
+                                },
+                                Transform::from_translation(Vec3::new(0.0, 25.0, 20.0))
+                            )
+                        }
                     );
                 });
         }
@@ -153,9 +162,13 @@ fn update_lightbulb(
     }
 }
 
-fn expand_circles(
-    time: Res<Time>,
-    mut query: Query<()>
-) {
-
+fn expand_circles(mut query: Query<(&mut CircleRadius, &mut Path)>) {
+    for (mut radius, mut path) in query.iter_mut() {
+        *radius = CircleRadius(radius.0 + 0.2);
+        let new_circle = shapes::Circle {
+            radius: radius.0,
+            ..shapes::Circle::default()
+        };
+        *path = ShapePath::build_as(&new_circle);
+    }
 }
