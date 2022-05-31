@@ -87,8 +87,8 @@ fn spawn_dlc(
         .spawn_bundle(CircuitBundle {
             circuit: dlcc,
             sprite_bundle: SpriteBundle {
-                texture: asset_server.load("dino-rino-mouth-open-small.png"),
-                transform: Transform::from_scale(Vec3::splat(5.0))
+                texture: asset_server.load("series-edited.png"),
+                transform: Transform::from_scale(Vec3::splat(0.3))
                     .with_translation(Vec3::new(-75.0, 0.0, 5.0)),
                 ..default()
             },
@@ -98,7 +98,7 @@ fn spawn_dlc(
                 light: Light {},
                 sprite_sheet_bundle: SpriteSheetBundle {
                     texture_atlas: light_texture_atlus_handle,
-                    transform: Transform::from_scale(Vec3::splat(1.0))
+                    transform: Transform::from_scale(Vec3::splat(5.0))
                         .with_translation(Vec3::new(0.0, 27.0, -1.0)),
                     ..default()
                 },
@@ -154,7 +154,8 @@ fn update_lightbulb(
                                     fill_mode: FillMode::color(Color::hsla(0.0, 0.0, 0.0, 0.0)),
                                     outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, calculate_circle_alpha(starting_radius)), 1.0),
                                 },
-                                Transform::from_translation(Vec3::new(0.0, 25.0, 20.0))
+                                Transform::from_scale(Vec3::splat(50.0))
+                                    .with_translation(Vec3::new(0.0, 25.0, 20.0))
                             )
                         }
                     );
