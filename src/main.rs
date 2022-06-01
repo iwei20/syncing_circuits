@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use syncing_circuits::graphics::{
-    CircuitTimer, CircuitTimerMode, DLCPlugin, SideBarPlugin, MAX_CIRCUIT_TIME, MIN_CIRCUIT_TIME,
+    CircuitTimer, CircuitTimerMode, DLCPlugin, SideBarPlugin, MAX_CIRCUIT_TIME, MIN_CIRCUIT_TIME, EffectsPlugin,
 };
 
 fn main() {
@@ -10,6 +10,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(SideBarPlugin)
         .add_startup_system(start_camera)
+        .add_plugin(EffectsPlugin)
         .add_plugin(DLCPlugin)
         .add_system(update_time)
         .run();
