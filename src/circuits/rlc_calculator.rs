@@ -72,7 +72,7 @@ impl RLCCalculator {
             new_dqdt += new_d2qdt2 * dt;
             new_d2qdt2 = -(new_q / self.capacitance + self.resistance * new_dqdt) / self.inductance;
         }
-        
+
         self.q = new_q;
         self.dqdt = new_dqdt;
         self.d2qdt2 = new_d2qdt2;
