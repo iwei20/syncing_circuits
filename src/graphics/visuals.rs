@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_prototype_lyon::{entity::ShapeBundle, prelude::{GeometryBuilder, DrawMode, FillMode, StrokeMode, Path, ShapePath}, shapes, plugin::ShapePlugin};
 
 use crate::DisconnectLightCircuitCalculator;
 use std::cmp::PartialEq;
@@ -15,6 +16,9 @@ pub struct CurrentTimePlot(pub Vec<(f64, f64)>);
 /// A marker component to indicate this shape is a light.
 pub struct Light;
 
+#[derive(Component)]
+pub struct CircleRadius(pub f32);
+
 #[derive(Bundle)]
 pub struct CircuitBundle {
     pub circuit: DLRCCircuit,
@@ -30,17 +34,26 @@ pub struct LightBundle {
     pub sprite_sheet_bundle: SpriteSheetBundle,
 }
 
+#[derive(Bundle)]
+pub struct CircleBundle {
+    pub radius: CircleRadius,
+    #[bundle]
+    pub shape_bundle: ShapeBundle
+}
 /// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness.
 pub struct DLCPlugin;
 
 impl Plugin for DLCPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(spawn_dlc)
+        app
+            .add_plugin(ShapePlugin)
+            .add_startup_system(spawn_dlc)
             .insert_resource(CircuitTimer {
                 time: MIN_CIRCUIT_TIME,
                 mode: CircuitTimerMode::Pause,
             })
-            .add_system(update_lightbulb);
+            .add_system(update_lightbulb)
+            .add_system(expand_circles);
     }
 }
 
@@ -98,6 +111,7 @@ fn spawn_dlc(
                 },
             });
         });
+        
 }
 
 /// Updates the colors of all light entities based on the time provided by CircuitTimer.
@@ -119,6 +133,63 @@ fn update_lightbulb(
         } else {
             sprite.index = 3;
         }
+
+        // Check if the current time (phase shifted) is a multiple of a half period
+        let epsilon = 0.003;
+        let period = std::f32::consts::TAU / parent_circuit.0.circuit.angular_freq();
+        let time_to_peaks = period / 2.0;
+        let time_multiple = (circuit_timer.time + period / 4.0) / time_to_peaks;
+        let closest_integer_multiple = time_multiple.round();
+        if (time_multiple - closest_integer_multiple).abs() < epsilon && closest_integer_multiple != 0.0 {
+            info!("Circle spawned");
+            let starting_radius = 0.0;
+            let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
+                radius: starting_radius,
+                ..shapes::Circle::default()
+            });
+            commands
+                .entity(**parent)
+                .with_children(|parent| {
+                    parent.spawn_bundle(
+                        CircleBundle {
+                            radius: CircleRadius(starting_radius),
+                            shape_bundle: circle_builder.build(
+                                DrawMode::Outlined {
+                                    fill_mode: FillMode::color(Color::hsla(0.0, 0.0, 0.0, 0.0)),
+                                    outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, calculate_circle_alpha(starting_radius)), 1.0),
+                                },
+                                Transform::from_translation(Vec3::new(0.0, 25.0, 20.0))
+                            )
+                        }
+                    );
+                });
+        }
+        
+    }
+}
+
+fn calculate_circle_alpha(radius: f32) -> f32 {
+    (-radius / 20.0).exp()
+}
+
+fn expand_circles(mut commands: Commands, mut query: Query<(Entity, &mut CircleRadius, &mut Path, &mut DrawMode)>) {
+    for (entity, mut radius, mut path, mut draw_mode) in query.iter_mut() {
+        if radius.0 > 200.0 {
+            info!("Circle despawned");
+            commands
+                .entity(entity)
+                .despawn();
+        }
+        *radius = CircleRadius(radius.0 + 0.4);
+        let new_circle = shapes::Circle {
+            radius: radius.0,
+            ..shapes::Circle::default()
+        };
+        *draw_mode = DrawMode::Outlined {
+            fill_mode: FillMode::color(Color::hsla(0.0, 0.0, 0.0, 0.0)),
+            outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, calculate_circle_alpha(radius.0)), 1.0),
+        };
+        *path = ShapePath::build_as(&new_circle);
     }
 }
 

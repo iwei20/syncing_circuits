@@ -4,6 +4,7 @@ use syncing_circuits::graphics::{update_time, DLCPlugin, SideBarPlugin};
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
+        .insert_resource(ClearColor(Color::BLACK))
         .add_plugins(DefaultPlugins)
         .add_plugin(SideBarPlugin)
         .add_startup_system(start_camera)
