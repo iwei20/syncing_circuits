@@ -8,12 +8,17 @@ use std::cmp::PartialEq;
 pub struct DLRCCircuit(pub DisconnectLightCircuitCalculator);
 
 #[derive(Component)]
+/// A component to store the current computed current, time pairs related to a circuit which has been
+pub struct CurrentTimePlot(pub Vec<(f64, f64)>);
+
+#[derive(Component)]
 /// A marker component to indicate this shape is a light.
 pub struct Light;
 
 #[derive(Bundle)]
 pub struct CircuitBundle {
     pub circuit: DLRCCircuit,
+    pub plot: CurrentTimePlot,
     #[bundle]
     pub sprite_bundle: SpriteBundle,
 }
@@ -39,8 +44,8 @@ impl Plugin for DLCPlugin {
     }
 }
 
-pub const MAX_CIRCUIT_TIME: f32 = 100.0;
-pub const MIN_CIRCUIT_TIME: f32 = 0.0;
+pub const MAX_CIRCUIT_TIME: f64 = 100.0;
+pub const MIN_CIRCUIT_TIME: f64 = 0.0;
 
 #[derive(PartialEq)]
 pub enum CircuitTimerMode {
@@ -50,7 +55,7 @@ pub enum CircuitTimerMode {
 
 /// A shared resource for timers that provides the current *simulated* time, which can be changed freely.
 pub struct CircuitTimer {
-    pub time: f32,
+    pub time: f64,
     pub mode: CircuitTimerMode,
 }
 
@@ -61,7 +66,7 @@ fn spawn_dlc(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     let dlcc = DLRCCircuit(DisconnectLightCircuitCalculator::with_constants(
-        300.0, 0.2, 4.0, 6.0,
+        10.0, 0.2, 4.0, 6.0,
     ));
 
     let light_texture_handle = asset_server.load("dino-rino-flame-animation.png");
@@ -73,6 +78,8 @@ fn spawn_dlc(
     commands
         .spawn_bundle(CircuitBundle {
             circuit: dlcc,
+            //initialized with MIN_CIRCUIT_TIME, 0.0, because that is what it starts as
+            plot: CurrentTimePlot(vec![(MIN_CIRCUIT_TIME, 0.0)]),
             sprite_bundle: SpriteBundle {
                 texture: asset_server.load("dino-rino-mouth-open-small.png"),
                 transform: Transform::from_scale(Vec3::splat(5.0))
@@ -95,7 +102,6 @@ fn spawn_dlc(
 
 /// Updates the colors of all light entities based on the time provided by CircuitTimer.
 fn update_lightbulb(
-    circuit_timer: ResMut<CircuitTimer>,
     mut query_lights: Query<(&Parent, &mut TextureAtlasSprite), With<Light>>,
     query_circs: Query<&DLRCCircuit>,
 ) {
@@ -103,7 +109,7 @@ fn update_lightbulb(
         let parent_circuit = query_circs
             .get(parent.0)
             .expect("couldn't find child to light");
-        let new_power = parent_circuit.0.lightbulb_power(circuit_timer.time);
+        let new_power = parent_circuit.0.lightbulb_power();
         if new_power < 0.05 {
             sprite.index = 0;
         } else if new_power < 0.1 {
@@ -114,4 +120,26 @@ fn update_lightbulb(
             sprite.index = 3;
         }
     }
+}
+
+///the time incremented every frame
+const DELTA_T: f64 = 0.1;
+
+pub fn update_time(
+    mut time: ResMut<CircuitTimer>,
+    mut query_circs: Query<(&mut DLRCCircuit, &mut CurrentTimePlot)>,
+) {
+    if time.mode == CircuitTimerMode::Play {
+        time.time += DELTA_T;
+        for (mut circ, mut plot) in query_circs.iter_mut() {
+            circ.0.circuit.tick(DELTA_T);
+            plot.0.push((time.time, circ.0.circuit.current()));
+        }
+    }
+
+    if time.time > MAX_CIRCUIT_TIME {
+        time.time = MAX_CIRCUIT_TIME;
+        time.mode = CircuitTimerMode::Pause;
+    }
+    time.time = time.time.max(MIN_CIRCUIT_TIME);
 }
