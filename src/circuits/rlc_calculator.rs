@@ -7,6 +7,9 @@ pub struct RLCCalculator {
     pub resistance: Float,
     pub inductance: Float,
     pub capacitance: Float,
+    q: Float,
+    dqdt: Float,
+    d2qdt2: Float,
 }
 
 impl RLCCalculator {
@@ -32,41 +35,34 @@ impl RLCCalculator {
             resistance,
             inductance,
             capacitance,
+            q: startcharge,
+            dqdt: 0.0,
+            //initializing this to 0.0 is sketchy but might work ???
+            d2qdt2: 0.0,
         }
     }
-
-    /// Omega prime, or the angular frequency of an RLC circuit;
-    /// sqrt(w^2 - (R/2L)^2)
-    fn angular_freq(&self) -> Float {
-        let w_squared = (self.inductance * self.capacitance).recip();
-        let modifier = self.resistance * 0.5 * self.inductance.recip();
-        (w_squared - modifier * modifier).sqrt()
+    
+    ///resturns the current in the circuit
+    pub fn current(&self) -> Float {
+        -self.dqdt
     }
 
-    /// Returns the current running through the represented RLC series circuit at the given time.
-    /// Calculated by w'Rq0/(2L) e^{-Rt/2L} sin(w't)
-    ///
-    /// # Arguments
-    /// * `t` - the time from the start time at which the capacitor had charge q0.
-    ///
-    /// # Returns
-    /// * A `f32` giving the current running through the circuit, where positive current runs in the direction from the negative plate to the positive plate.
-    ///
-    /// i.e.,
-    /// ```text
-    ///              i
-    ///         - + -->
-    ///     ----| |----
-    ///     |    C    |
-    ///     L         |
-    ///     |         |
-    ///     ----R------
-    /// ```
+    ///increments the current circuit in time by delta_t
+    ///try to keep delta_t small
+    pub fn tick(&mut self, delta_t: Float) {
+        let new_q = self.q + self.dqdt * delta_t;
+        let new_dqdt = self.dqdt + self.d2qdt2 * delta_t;
+        let new_d2qdt2 = -(self.q / self.capacitance + self.resistance * self.dqdt) / self.inductance;
+        self.q = new_q;
+        self.dqdt = new_dqdt;
+        self.d2qdt2 = new_d2qdt2;
+    }
 
-    pub fn current(&self, t: Float) -> Float {
-        let half_sqrt_l = 0.5 * self.inductance.recip();
-        let c = self.angular_freq() * self.resistance * self.startcharge * half_sqrt_l;
-        let tau = -self.resistance * half_sqrt_l;
-        c * (tau * t).exp() * (self.angular_freq() * t).sin()
+    ///starts the simulation over from scratch
+    pub fn reset(&mut self) {
+        self.q = self.startcharge;
+        self.dqdt = 0.0;
+        //again with the sketchy starts
+        self.d2qdt2 = 0.0;
     }
 }
