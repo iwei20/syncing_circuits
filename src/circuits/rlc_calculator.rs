@@ -41,7 +41,7 @@ impl RLCCalculator {
             d2qdt2: 0.0,
         }
     }
-    
+
     ///resturns the current in the circuit
     pub fn current(&self) -> Float {
         -self.dqdt
@@ -52,7 +52,8 @@ impl RLCCalculator {
     pub fn tick(&mut self, delta_t: Float) {
         let new_q = self.q + self.dqdt * delta_t;
         let new_dqdt = self.dqdt + self.d2qdt2 * delta_t;
-        let new_d2qdt2 = -(self.q / self.capacitance + self.resistance * self.dqdt) / self.inductance;
+        let new_d2qdt2 =
+            -(self.q / self.capacitance + self.resistance * self.dqdt) / self.inductance;
         self.q = new_q;
         self.dqdt = new_dqdt;
         self.d2qdt2 = new_d2qdt2;

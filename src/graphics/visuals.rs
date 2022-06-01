@@ -126,7 +126,7 @@ fn update_lightbulb(
 const DELTA_T: f32 = 0.1;
 
 pub fn update_time(
-    mut time: ResMut<CircuitTimer>, 
+    mut time: ResMut<CircuitTimer>,
     mut query_circs: Query<(&mut DLRCCircuit, &mut CurrentTimePlot)>,
 ) {
     if time.mode == CircuitTimerMode::Play {

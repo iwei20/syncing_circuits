@@ -1,7 +1,5 @@
 use bevy::prelude::*;
-use syncing_circuits::graphics::{
-    DLCPlugin, SideBarPlugin, update_time
-};
+use syncing_circuits::graphics::{update_time, DLCPlugin, SideBarPlugin};
 
 fn main() {
     App::new()
@@ -17,4 +15,3 @@ fn main() {
 fn start_camera(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 }
-

@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 use bevy_egui::egui::{
-    plot::{Line, Plot, Value, Values, Points},
+    plot::{Line, Plot, Points, Value, Values},
     Align2,
 };
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
 use crate::graphics::{
-    CircuitTimer, CircuitTimerMode, DLRCCircuit, MAX_CIRCUIT_TIME, MIN_CIRCUIT_TIME, CurrentTimePlot,
+    CircuitTimer, CircuitTimerMode, CurrentTimePlot, DLRCCircuit, MAX_CIRCUIT_TIME,
+    MIN_CIRCUIT_TIME,
 };
 
 ///Plugin to add slide bar of sliders
@@ -34,7 +35,7 @@ fn left_slider_frame(
         .show(egui_context.ctx_mut(), |ui| {
             ui.add(
                 egui::ProgressBar::new(time.time / (MAX_CIRCUIT_TIME - MIN_CIRCUIT_TIME))
-                    .text(format!("time since start: {:.1}", time.time))
+                    .text(format!("time since start: {:.1}", time.time)),
             );
             for (mut dlcc, _) in query_circs.iter_mut() {
                 let r = &mut dlcc.0.circuit.resistance;
@@ -51,7 +52,11 @@ fn left_slider_frame(
                 let c = &mut dlcc.0.circuit.capacitance;
                 ui.add(egui::Slider::new(c, 1.0..=10.0).text("C").fixed_decimals(2));
                 let start_q = &mut dlcc.0.circuit.startcharge;
-                ui.add(egui::Slider::new(start_q, 0.0..=300.0).text("starting Q").fixed_decimals(2));
+                ui.add(
+                    egui::Slider::new(start_q, 0.0..=300.0)
+                        .text("starting Q")
+                        .fixed_decimals(2),
+                );
             }
             ui.with_layout(egui::Layout::left_to_right(), |ui| {
                 //start, stop, and rewind buttons
@@ -70,10 +75,7 @@ fn left_slider_frame(
         });
 }
 
-fn circuit_plot(
-    mut egui_ctx: ResMut<EguiContext>, 
-    query_circs: Query<&CurrentTimePlot>,
-) {
+fn circuit_plot(mut egui_ctx: ResMut<EguiContext>, query_circs: Query<&CurrentTimePlot>) {
     egui::Window::new("Current")
         .anchor(Align2::RIGHT_TOP, [0.0, 100.0])
         .fixed_size([400.0, 400.0])
@@ -81,14 +83,16 @@ fn circuit_plot(
         .frame(egui::Frame::dark_canvas(&egui_ctx.ctx_mut().style()))
         .show(egui_ctx.ctx_mut(), |ui| {
             for points in query_circs.iter() {
-                let line = Line::new(Values::from_values_iter(points.0.iter().map(|&(a, b)| Value::new(a, b))));
+                let line = Line::new(Values::from_values_iter(
+                    points.0.iter().map(|&(a, b)| Value::new(a, b)),
+                ));
 
                 //stupid hack to get graph to have fixed axis
                 //basically just add the boundry points to the graph
                 let boundry_points = vec![
-                    Value::new(MIN_CIRCUIT_TIME, -10.0), 
-                    Value::new(MIN_CIRCUIT_TIME, 10.0), 
-                    Value::new(MAX_CIRCUIT_TIME, -10.0), 
+                    Value::new(MIN_CIRCUIT_TIME, -10.0),
+                    Value::new(MIN_CIRCUIT_TIME, 10.0),
+                    Value::new(MAX_CIRCUIT_TIME, -10.0),
                     Value::new(MAX_CIRCUIT_TIME, 10.0),
                 ];
                 Plot::new("Current")
