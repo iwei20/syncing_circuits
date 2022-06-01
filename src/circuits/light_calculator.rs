@@ -1,5 +1,5 @@
 use super::RLCCalculator;
-type Float = f32;
+type Float = f64;
 
 #[derive(Debug)]
 /// Helper struct for calculating the power of a lightbulb connected to a RLC series circuit.
@@ -47,16 +47,10 @@ impl DisconnectLightCircuitCalculator {
         Self { circuit }
     }
 
-    /// Calculates the current power, in watts, output by the lightbulb in this circuit at time `t`.
-    ///
-    /// # Arguments
-    ///
-    /// * `t` - time for which to calculate the power.
-    ///
-    /// # Returns
-    /// A `f32` that is the current power, in watts, output by the lightbulb at time `t`.
-    pub fn lightbulb_power(&self, t: Float) -> Float {
-        let current = self.circuit.current(t);
+    /// Calculates the current power, in watts, output by the lightbulb in this circuit at the
+    /// current time in the circuit
+    pub fn lightbulb_power(&self) -> Float {
+        let current = self.circuit.current();
         current * current * self.circuit.resistance
     }
 }
