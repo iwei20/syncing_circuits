@@ -1,4 +1,4 @@
-use bevy::{render::{render_resource::{ShaderStage, ShaderStages, BindGroup, BindGroupLayoutDescriptor, BindGroupDescriptor}, render_asset::{RenderAsset, PrepareAssetError}, renderer::RenderDevice}, prelude::{Plugin, ResMut, Assets, Mesh, Commands, shape, Transform, default, Res}, sprite::{Material2d, Material2dPipeline, Material2dPlugin, MaterialMesh2dBundle}, asset::Asset, reflect::TypeUuid, ecs::system::{SystemParamItem, lifetimeless::SRes}, pbr::MaterialPipeline, window::{Windows, Window}, math::Vec3};
+use bevy::{render::{render_resource::{BindGroup, BindGroupLayoutDescriptor, BindGroupDescriptor}, render_asset::{RenderAsset, PrepareAssetError}, renderer::RenderDevice}, prelude::{Plugin, ResMut, Assets, Mesh, Commands, shape, Transform, default, Res}, sprite::{Material2d, Material2dPipeline, Material2dPlugin, MaterialMesh2dBundle}, reflect::TypeUuid, ecs::system::{SystemParamItem, lifetimeless::SRes}, window::{Windows}, math::Vec3};
 
 pub struct EffectsPlugin;
 
@@ -46,6 +46,7 @@ impl Material2d for NoiseMaterial {
     }
 
     fn fragment_shader(asset_server: &bevy::prelude::AssetServer) -> Option<bevy::prelude::Handle<bevy::prelude::Shader>> {
+        asset_server.watch_for_changes().unwrap();
         Some(asset_server.load("random.frag"))
     }
 }
@@ -60,7 +61,7 @@ impl RenderAsset for NoiseMaterial {
     }
 
     fn prepare_asset(
-        extracted_asset: Self::ExtractedAsset,
+        _extracted_asset: Self::ExtractedAsset,
         (render_device, pipeline): &mut SystemParamItem<Self::Param>,
     ) -> Result<Self::PreparedAsset, PrepareAssetError<Self::ExtractedAsset>> {
         let bind_group = render_device.create_bind_group(&BindGroupDescriptor {
