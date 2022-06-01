@@ -49,9 +49,6 @@ impl DisconnectLightCircuitCalculator {
 
     /// Calculates the current power, in watts, output by the lightbulb in this circuit at the
     /// current time in the circuit
-    ///
-    /// # Returns
-    /// A `f32` that is the current power, in watts
     pub fn lightbulb_power(&self) -> Float {
         let current = self.circuit.current();
         current * current * self.circuit.resistance

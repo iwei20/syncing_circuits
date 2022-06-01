@@ -29,6 +29,7 @@ pub struct LightBundle {
     #[bundle]
     pub sprite_sheet_bundle: SpriteSheetBundle,
 }
+
 /// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness.
 pub struct DLCPlugin;
 
