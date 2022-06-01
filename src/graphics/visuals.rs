@@ -9,7 +9,7 @@ pub struct DLRCCircuit(pub DisconnectLightCircuitCalculator);
 
 #[derive(Component)]
 /// A component to store the current computed current, time pairs related to a circuit which has been
-pub struct CurrentTimePlot(pub Vec<(f32, f32)>);
+pub struct CurrentTimePlot(pub Vec<(f64, f64)>);
 
 #[derive(Component)]
 /// A marker component to indicate this shape is a light.
@@ -29,7 +29,6 @@ pub struct LightBundle {
     #[bundle]
     pub sprite_sheet_bundle: SpriteSheetBundle,
 }
-
 /// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness.
 pub struct DLCPlugin;
 
@@ -44,8 +43,8 @@ impl Plugin for DLCPlugin {
     }
 }
 
-pub const MAX_CIRCUIT_TIME: f32 = 100.0;
-pub const MIN_CIRCUIT_TIME: f32 = 0.0;
+pub const MAX_CIRCUIT_TIME: f64 = 100.0;
+pub const MIN_CIRCUIT_TIME: f64 = 0.0;
 
 #[derive(PartialEq)]
 pub enum CircuitTimerMode {
@@ -55,7 +54,7 @@ pub enum CircuitTimerMode {
 
 /// A shared resource for timers that provides the current *simulated* time, which can be changed freely.
 pub struct CircuitTimer {
-    pub time: f32,
+    pub time: f64,
     pub mode: CircuitTimerMode,
 }
 
@@ -66,7 +65,7 @@ fn spawn_dlc(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     let dlcc = DLRCCircuit(DisconnectLightCircuitCalculator::with_constants(
-        300.0, 0.2, 4.0, 6.0,
+        10.0, 0.2, 4.0, 6.0,
     ));
 
     let light_texture_handle = asset_server.load("dino-rino-flame-animation.png");
@@ -123,7 +122,7 @@ fn update_lightbulb(
 }
 
 ///the time incremented every frame
-const DELTA_T: f32 = 0.1;
+const DELTA_T: f64 = 0.1;
 
 pub fn update_time(
     mut time: ResMut<CircuitTimer>,

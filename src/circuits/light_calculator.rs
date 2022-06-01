@@ -1,5 +1,5 @@
 use super::RLCCalculator;
-type Float = f32;
+type Float = f64;
 
 #[derive(Debug)]
 /// Helper struct for calculating the power of a lightbulb connected to a RLC series circuit.

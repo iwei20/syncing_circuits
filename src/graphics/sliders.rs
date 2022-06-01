@@ -34,11 +34,11 @@ fn left_slider_frame(
         .frame(egui::Frame::dark_canvas(&egui_context.ctx_mut().style()))
         .show(egui_context.ctx_mut(), |ui| {
             ui.add(
-                egui::ProgressBar::new(time.time / (MAX_CIRCUIT_TIME - MIN_CIRCUIT_TIME))
+                //the f32 cast should be fine
+                egui::ProgressBar::new((time.time / (MAX_CIRCUIT_TIME - MIN_CIRCUIT_TIME)) as f32)
                     .text(format!("time since start: {:.1}", time.time)),
             );
             for (mut dlcc, _) in query_circs.iter_mut() {
-                let r = &mut dlcc.0.circuit.resistance;
                 //TODO: loosen the limit on small R
                 //We limit R to be very small compared to L and C
                 //This is to let the angular frequency always be defined
@@ -46,14 +46,15 @@ fn left_slider_frame(
                 //Possibly in the future we can figure out how to model bigger R
                 //but it isn't in Halliday so right now this limitation stands
                 //This might have been fixed with the change to the simulation
-                ui.add(egui::Slider::new(r, 0.01..=0.2).text("R").fixed_decimals(2));
+                let r = &mut dlcc.0.circuit.resistance;
+                ui.add(egui::Slider::new(r, 0.00..=1.0).text("R").fixed_decimals(2));
                 let l = &mut dlcc.0.circuit.inductance;
-                ui.add(egui::Slider::new(l, 1.0..=10.0).text("L").fixed_decimals(2));
+                ui.add(egui::Slider::new(l, 0.0..=10.0).text("L").fixed_decimals(2));
                 let c = &mut dlcc.0.circuit.capacitance;
-                ui.add(egui::Slider::new(c, 1.0..=10.0).text("C").fixed_decimals(2));
+                ui.add(egui::Slider::new(c, 0.0..=10.0).text("C").fixed_decimals(2));
                 let start_q = &mut dlcc.0.circuit.startcharge;
                 ui.add(
-                    egui::Slider::new(start_q, 0.0..=300.0)
+                    egui::Slider::new(start_q, 0.0..=50.0)
                         .text("starting Q")
                         .fixed_decimals(2),
                 );

@@ -1,4 +1,4 @@
-type Float = f32;
+type Float = f64;
 
 #[derive(Debug)]
 /// Helper struct for calculating RLC series circuit current.
@@ -7,6 +7,7 @@ pub struct RLCCalculator {
     pub resistance: Float,
     pub inductance: Float,
     pub capacitance: Float,
+    time_since_first_tick: Float,
     q: Float,
     dqdt: Float,
     d2qdt2: Float,
@@ -35,9 +36,10 @@ impl RLCCalculator {
             resistance,
             inductance,
             capacitance,
-            q: startcharge,
+            time_since_first_tick: 0.0,
+            //should get set later when time_since_first_tick is 0
+            q: 0.0,
             dqdt: 0.0,
-            //initializing this to 0.0 is sketchy but might work ???
             d2qdt2: 0.0,
         }
     }
@@ -50,20 +52,35 @@ impl RLCCalculator {
     ///increments the current circuit in time by delta_t
     ///try to keep delta_t small
     pub fn tick(&mut self, delta_t: Float) {
-        let new_q = self.q + self.dqdt * delta_t;
-        let new_dqdt = self.dqdt + self.d2qdt2 * delta_t;
-        let new_d2qdt2 =
-            -(self.q / self.capacitance + self.resistance * self.dqdt) / self.inductance;
+        if self.time_since_first_tick == 0.0 {
+            self.q = self.startcharge;
+            self.dqdt = 0.0;
+            let w_squared = (self.inductance * self.capacitance).recip();
+            let modifier = self.resistance * 0.5 * self.inductance.recip();
+            //-Qw^2
+            self.d2qdt2 = -self.startcharge * (w_squared - modifier * modifier);
+        }
+
+        const FIDELITY: i32 = 100;
+        let dt = delta_t / FIDELITY as Float;
+        let mut new_q = self.q;
+        let mut new_dqdt = self.dqdt;
+        let mut new_d2qdt2 = self.d2qdt2;
+
+        for _ in 0..FIDELITY {
+            new_q += new_dqdt * dt;
+            new_dqdt += new_d2qdt2 * dt;
+            new_d2qdt2 = -(new_q / self.capacitance + self.resistance * new_dqdt) / self.inductance;
+        }
+        
         self.q = new_q;
         self.dqdt = new_dqdt;
         self.d2qdt2 = new_d2qdt2;
+        self.time_since_first_tick += delta_t;
     }
 
     ///starts the simulation over from scratch
     pub fn reset(&mut self) {
-        self.q = self.startcharge;
-        self.dqdt = 0.0;
-        //again with the sketchy starts
-        self.d2qdt2 = 0.0;
+        self.time_since_first_tick = 0.0;
     }
 }
