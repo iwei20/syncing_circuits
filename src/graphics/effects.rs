@@ -1,13 +1,24 @@
-use bevy::{render::{render_resource::{BindGroup, BindGroupLayoutDescriptor, BindGroupDescriptor, Buffer, BindGroupLayoutEntry, ShaderStages, BindingType, BufferBindingType, BufferSize, BindGroupEntry, BufferDescriptor, BufferUsages}, render_asset::{RenderAsset, PrepareAssetError}, renderer::RenderDevice}, prelude::{Plugin, ResMut, Assets, Mesh, Commands, shape, Transform, default, Res}, sprite::{Material2d, Material2dPipeline, Material2dPlugin, MaterialMesh2dBundle}, reflect::TypeUuid, ecs::system::{SystemParamItem, lifetimeless::SRes}, window::{Windows}, math::Vec3};
+use bevy::{render::{render_resource::{BindGroup, BindGroupLayoutDescriptor, BindGroupDescriptor, Buffer, BindGroupLayoutEntry, ShaderStages, BindingType, BufferBindingType, BufferSize, BindGroupEntry, BufferDescriptor, BufferUsages}, render_asset::{RenderAsset, PrepareAssetError}, renderer::RenderDevice}, prelude::{Plugin, ResMut, Assets, Mesh, Commands, shape, Transform, default, Res, Component, Bundle, Query}, sprite::{Material2d, Material2dPipeline, Material2dPlugin, MaterialMesh2dBundle}, reflect::TypeUuid, ecs::{system::{SystemParamItem, lifetimeless::SRes}, event::Events}, window::{Windows, WindowResized}, math::Vec3};
 
 pub struct EffectsPlugin;
 
 impl Plugin for EffectsPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugin(Material2dPlugin::<NoiseMaterial>::default())
-           .add_startup_system(spawn_foreground);
+           .add_startup_system(spawn_foreground)
+           .add_system(resize_notificator);
     }
 }
+
+#[derive(Bundle)]
+pub struct ForegroundBundle {
+    foreground: Foreground,
+    #[bundle]
+    mesh2dbundle: MaterialMesh2dBundle<NoiseMaterial>
+}
+
+#[derive(Component)]
+pub struct Foreground;
 
 fn spawn_foreground(
     mut commands: Commands,
@@ -16,12 +27,26 @@ fn spawn_foreground(
     windows: Res<Windows>
 ) {
     let window = windows.get_primary().unwrap();
-    commands.spawn_bundle(MaterialMesh2dBundle {
-        mesh: meshes.add(Mesh::from(shape::Quad::default())).into(),
-        material: materials.add(NoiseMaterial),
-        transform: Transform::from_scale(Vec3::new(window.width(), window.height(), 25.0)).with_translation(Vec3::new(0.0, 0.0, 10.0)),
-        ..default()
-    });
+    commands.spawn_bundle(
+        ForegroundBundle {
+            foreground: Foreground,
+            mesh2dbundle: MaterialMesh2dBundle {
+                mesh: meshes.add(Mesh::from(shape::Quad::default())).into(),
+                material: materials.add(NoiseMaterial),
+                transform: Transform::from_scale(Vec3::new(window.width(), window.height(), 25.0)).with_translation(Vec3::new(0.0, 0.0, 10.0)),
+                ..default()
+            }
+        }
+    );
+}
+
+fn resize_notificator(resize_event: Res<Events<WindowResized>>, mut query: Query<(&Foreground, &mut Transform)>) {
+    let mut reader = resize_event.get_reader();
+    for (_foreground, mut transform) in query.iter_mut() {
+        for e in reader.iter(&resize_event) {
+            *transform = Transform::from_scale(Vec3::new(e.width, e.height, 25.0)).with_translation(Vec3::new(0.0, 0.0, 10.0));
+        }
+    }
 }
 /// A transparent material that should scramble background
 #[derive(TypeUuid, Clone)]
@@ -48,7 +73,7 @@ impl Material2d for NoiseMaterial {
 
     fn fragment_shader(asset_server: &bevy::prelude::AssetServer) -> Option<bevy::prelude::Handle<bevy::prelude::Shader>> {
         asset_server.watch_for_changes().unwrap();
-        Some(asset_server.load("random.frag"))
+        Some(asset_server.load("random.wgsl"))
     }
 }
 
