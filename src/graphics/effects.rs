@@ -1,4 +1,4 @@
-use bevy::{render::{render_resource::{BindGroup, BindGroupLayoutDescriptor, BindGroupDescriptor, Buffer, BindGroupLayoutEntry, ShaderStages, BindingType, BufferBindingType, BufferSize, BindGroupEntry, BufferDescriptor, BufferUsages}, render_asset::{RenderAsset, PrepareAssetError}, renderer::RenderDevice}, prelude::{Plugin, ResMut, Assets, Mesh, Commands, shape, Transform, default, Res, Component, Bundle, Query}, sprite::{Material2d, Material2dPipeline, Material2dPlugin, MaterialMesh2dBundle}, reflect::TypeUuid, ecs::{system::{SystemParamItem, lifetimeless::SRes}, event::Events}, window::{Windows, WindowResized}, math::Vec3};
+use bevy::{render::{render_resource::{BindGroup, BindGroupLayoutDescriptor, BindGroupDescriptor, Buffer, BindGroupLayoutEntry, ShaderStages, BindingType, BufferBindingType, BufferSize, BindGroupEntry, BufferDescriptor, BufferUsages}, render_asset::{RenderAsset, PrepareAssetError}, renderer::{RenderDevice, RenderQueue}, RenderStage}, prelude::{Plugin, ResMut, Assets, Mesh, Commands, shape, Transform, default, Res, Component, Bundle, Query}, sprite::{Material2d, Material2dPipeline, Material2dPlugin, MaterialMesh2dBundle}, reflect::TypeUuid, ecs::{system::{SystemParamItem, lifetimeless::SRes}, event::Events}, window::{Windows, WindowResized}, math::Vec3, core::Time};
 
 pub struct EffectsPlugin;
 
@@ -80,7 +80,7 @@ impl Material2d for NoiseMaterial {
 impl RenderAsset for NoiseMaterial {
     type ExtractedAsset = Self;
     type PreparedAsset = NoiseMaterialGPU;
-    type Param = (SRes<RenderDevice>, SRes<Material2dPipeline<Self>>);
+    type Param = (SRes<RenderDevice>, SRes<Material2dPipeline<Self>>, SRes<RenderQueue>);
 
     fn extract_asset(&self) -> Self::ExtractedAsset {
         self.clone()
@@ -88,7 +88,7 @@ impl RenderAsset for NoiseMaterial {
 
     fn prepare_asset(
         _extracted_asset: Self::ExtractedAsset,
-        (render_device, pipeline): &mut SystemParamItem<Self::Param>,
+        (render_device, pipeline, render_queue): &mut SystemParamItem<Self::Param>,
     ) -> Result<Self::PreparedAsset, PrepareAssetError<Self::ExtractedAsset>> {
         let bind_group = render_device.create_bind_group(&BindGroupDescriptor {
             label: None,
@@ -101,11 +101,12 @@ impl RenderAsset for NoiseMaterial {
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
             mapped_at_creation: false
         });
+        render_queue.write_buffer(&time_buffer, 0, bevy::core::cast_slice(&[0f32]));
         let time_group_layout_descriptor = BindGroupLayoutDescriptor {
             label: None,
             entries: &[
                 BindGroupLayoutEntry {
-                    binding: 0,
+                    binding: 1,
                     visibility: ShaderStages::FRAGMENT,
                     ty: BindingType::Buffer { 
                         ty: BufferBindingType::Uniform, 
