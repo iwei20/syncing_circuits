@@ -1,12 +1,12 @@
 use bevy::prelude::*;
-use syncing_circuits::graphics::{update_time, DLCPlugin, SideBarPlugin};
+use syncing_circuits::graphics::{update_time, DLCPlugin, UIWindowsPlugin};
 
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(ClearColor(Color::BLACK))
         .add_plugins(DefaultPlugins)
-        .add_plugin(SideBarPlugin)
+        .add_plugin(UIWindowsPlugin)
         .add_startup_system(start_camera)
         .add_plugin(DLCPlugin)
         .add_system(update_time)
