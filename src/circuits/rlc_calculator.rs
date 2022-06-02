@@ -44,13 +44,18 @@ impl RLCCalculator {
         }
     }
 
-    ///resturns the current in the circuit
+    /// calculates the current in the circuit
+    ///
+    /// # Returns
+    /// A floating point number representing the current in the circuit.
     pub fn current(&self) -> Float {
         -self.dqdt
     }
 
-    ///increments the current circuit in time by delta_t
-    ///try to keep delta_t small
+    /// increments the internat state of the circuit, passing time by delta_t
+    ///
+    /// # Arguments
+    /// * 'delta_t' - the time passed in the circuit, keep it kind of small to minimize error
     pub fn tick(&mut self, delta_t: Float) {
         if self.time_since_first_tick == 0.0 {
             self.q = self.startcharge;
@@ -79,7 +84,7 @@ impl RLCCalculator {
         self.time_since_first_tick += delta_t;
     }
 
-    ///starts the simulation over from scratch
+    /// resets the state of the circuit back to time 0
     pub fn reset(&mut self) {
         self.time_since_first_tick = 0.0;
     }

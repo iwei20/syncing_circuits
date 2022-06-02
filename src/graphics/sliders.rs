@@ -10,10 +10,10 @@ use crate::graphics::{
     MIN_CIRCUIT_TIME,
 };
 
-///Plugin to add slide bar of sliders
-pub struct SideBarPlugin;
+///Plugin to add sliders and plot to the game
+pub struct UIWindowsPlugin;
 
-impl Plugin for SideBarPlugin {
+impl Plugin for UIWindowsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(EguiPlugin)
             .add_system(left_slider_frame)
@@ -21,7 +21,7 @@ impl Plugin for SideBarPlugin {
     }
 }
 
-///Create left side bar with the four desired sliders
+/// create a window with the desired sliders
 fn left_slider_frame(
     mut egui_context: ResMut<EguiContext>,
     mut query_circs: Query<(&mut DLRCCircuit, &mut CurrentTimePlot)>,
@@ -39,13 +39,6 @@ fn left_slider_frame(
                     .text(format!("time since start: {:.1}", time.time)),
             );
             for (mut dlcc, _) in query_circs.iter_mut() {
-                //TODO: loosen the limit on small R
-                //We limit R to be very small compared to L and C
-                //This is to let the angular frequency always be defined
-                //meaning we always have oscilations
-                //Possibly in the future we can figure out how to model bigger R
-                //but it isn't in Halliday so right now this limitation stands
-                //This might have been fixed with the change to the simulation
                 let r = &mut dlcc.0.circuit.resistance;
                 ui.add(egui::Slider::new(r, 0.00..=1.0).text("R").fixed_decimals(2));
                 let l = &mut dlcc.0.circuit.inductance;
@@ -76,6 +69,7 @@ fn left_slider_frame(
         });
 }
 
+/// creates a window containing a plot of the current against time
 fn circuit_plot(mut egui_ctx: ResMut<EguiContext>, query_circs: Query<&CurrentTimePlot>) {
     egui::Window::new("Current")
         .anchor(Align2::RIGHT_TOP, [0.0, 100.0])
