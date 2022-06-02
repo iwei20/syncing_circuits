@@ -1,4 +1,4 @@
-use bevy::{render::{render_resource::{BindGroup, BindGroupLayoutDescriptor, BindGroupDescriptor}, render_asset::{RenderAsset, PrepareAssetError}, renderer::RenderDevice}, prelude::{Plugin, ResMut, Assets, Mesh, Commands, shape, Transform, default, Res}, sprite::{Material2d, Material2dPipeline, Material2dPlugin, MaterialMesh2dBundle}, reflect::TypeUuid, ecs::system::{SystemParamItem, lifetimeless::SRes}, window::{Windows}, math::Vec3};
+use bevy::{render::{render_resource::{BindGroup, BindGroupLayoutDescriptor, BindGroupDescriptor, Buffer, BindGroupLayoutEntry, ShaderStages, BindingType, BufferBindingType, BufferSize, BindGroupEntry, BufferDescriptor, BufferUsages}, render_asset::{RenderAsset, PrepareAssetError}, renderer::RenderDevice}, prelude::{Plugin, ResMut, Assets, Mesh, Commands, shape, Transform, default, Res}, sprite::{Material2d, Material2dPipeline, Material2dPlugin, MaterialMesh2dBundle}, reflect::TypeUuid, ecs::system::{SystemParamItem, lifetimeless::SRes}, window::{Windows}, math::Vec3};
 
 pub struct EffectsPlugin;
 
@@ -29,9 +29,10 @@ fn spawn_foreground(
 pub struct NoiseMaterial;
 
 pub struct NoiseMaterialGPU {
-    bind_group: BindGroup
+    bind_group: BindGroup,
+    time_buffer: Buffer,
+    time_group: BindGroup
 }
-
 
 impl Material2d for NoiseMaterial {
     fn bind_group(material: &<Self as RenderAsset>::PreparedAsset) -> &bevy::render::render_resource::BindGroup {
@@ -69,6 +70,43 @@ impl RenderAsset for NoiseMaterial {
             layout: &pipeline.material2d_layout,
             entries: &[]
         });
-        Ok(NoiseMaterialGPU {bind_group})
+        let time_buffer = render_device.create_buffer(&BufferDescriptor {
+            label: None,
+            size: std::mem::size_of::<f32>() as u64,
+            usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
+            mapped_at_creation: false
+        });
+        let time_group_layout_descriptor = BindGroupLayoutDescriptor {
+            label: None,
+            entries: &[
+                BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: ShaderStages::FRAGMENT,
+                    ty: BindingType::Buffer { 
+                        ty: BufferBindingType::Uniform, 
+                        has_dynamic_offset: false, 
+                        min_binding_size: BufferSize::new(std::mem::size_of::<f32>() as u64), 
+                    },
+                    count: None,
+                }
+            ],
+        };
+        let time_group_layout = render_device.create_bind_group_layout(&time_group_layout_descriptor);
+        let time_group = render_device.create_bind_group(&BindGroupDescriptor {
+            label: None,
+            layout: &time_group_layout,
+            entries: &[
+                BindGroupEntry {
+                    binding: 1,
+                    resource: time_buffer.as_entire_binding(),
+                }
+            ],
+        });
+
+        Ok(NoiseMaterialGPU {
+            bind_group,
+            time_buffer,
+            time_group
+        })
     }
 }
