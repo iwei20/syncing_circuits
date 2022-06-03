@@ -55,8 +55,10 @@ pub struct NoiseMaterial;
 
 pub struct NoiseMaterialGPU {
     bind_group: BindGroup,
+    /*
     time_buffer: Buffer,
     time_group: BindGroup
+    */
 }
 
 impl Material2d for NoiseMaterial {
@@ -95,6 +97,7 @@ impl RenderAsset for NoiseMaterial {
             layout: &pipeline.material2d_layout,
             entries: &[]
         });
+        /* 
         let time_buffer = render_device.create_buffer(&BufferDescriptor {
             label: None,
             size: std::mem::size_of::<f32>() as u64,
@@ -127,12 +130,11 @@ impl RenderAsset for NoiseMaterial {
                     resource: time_buffer.as_entire_binding(),
                 }
             ],
-        });
+        });*/
 
         Ok(NoiseMaterialGPU {
             bind_group,
-            time_buffer,
-            time_group
+
         })
     }
 }
