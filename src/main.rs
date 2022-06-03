@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use syncing_circuits::graphics::{update_time, DLCPlugin, UIWindowsPlugin};
+use syncing_circuits::graphics::{update_time, DLCPlugin, UIWindowsPlugin, EffectsPlugin};
 
 fn main() {
     App::new()
@@ -8,6 +8,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(UIWindowsPlugin)
         .add_startup_system(start_camera)
+        .add_plugin(EffectsPlugin)
         .add_plugin(DLCPlugin)
         .add_system(update_time)
         .run();

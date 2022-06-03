@@ -52,6 +52,10 @@ impl RLCCalculator {
         -self.dqdt
     }
 
+    pub fn current_rate(&self) -> Float {
+        -self.d2qdt2
+    }
+
     /// increments the internat state of the circuit, passing time by delta_t
     ///
     /// # Arguments
