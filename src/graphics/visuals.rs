@@ -25,11 +25,15 @@ pub struct Light;
 /// A component to store the radius of an expanding circle
 pub struct CircleRadius(pub f32);
 
+#[derive(Component)]
+pub struct SpawnedThisSignum(pub f64, pub bool);
+
 #[derive(Bundle)]
 /// A bundle of components defining a circuit
 pub struct CircuitBundle {
     pub circuit: DLRCCircuit,
     pub plot: CurrentTimePlot,
+    pub sts: SpawnedThisSignum,
     #[bundle]
     pub sprite_bundle: SpriteBundle,
 }
@@ -121,6 +125,7 @@ fn spawn_dlc(
             circuit: dlcc,
             //initialized with MIN_CIRCUIT_TIME, 0.0, because that is what it starts as
             plot: CurrentTimePlot(vec![(MIN_CIRCUIT_TIME, 0.0)]),
+            sts: SpawnedThisSignum(0.0, false),
             sprite_bundle: SpriteBundle {
                 texture: asset_server.load("series-edited.png"),
                 transform: Transform::from_scale(Vec3::splat(0.3))
@@ -159,13 +164,13 @@ fn update_lightbulb(
     mut commands: Commands,
     circuit_timer: ResMut<CircuitTimer>,
     mut query_lights: Query<(Entity, &Parent, &mut DrawMode), With<Light>>,
-    query_circs: Query<&DLRCCircuit>,
+    mut query_circs: Query<(&mut DLRCCircuit, &mut SpawnedThisSignum)>,
 ) {
     for (entity, parent, mut draw_mode) in query_lights.iter_mut() {
-        let parent_circuit = query_circs
-            .get(parent.0)
+        let mut parent_circuit = query_circs
+            .get_mut(parent.0)
             .expect("couldn't find child to light");
-        let new_power = parent_circuit.0.lightbulb_power();
+        let new_power = parent_circuit.0.0.lightbulb_power();
 
         *draw_mode = DrawMode::Outlined {
             fill_mode: FillMode::color(Color::hsla(0.0, 0.0, new_power as f32 * 6.0, 0.7)),
@@ -176,7 +181,7 @@ fn update_lightbulb(
         let epsilon = 0.004;
         //TODO: the period should be changed to be somthing actually representative of a period of
         //a circuit
-        if parent_circuit.0.circuit.current_rate().abs() < epsilon && circuit_timer.time != MIN_CIRCUIT_TIME
+        if parent_circuit.0.0.circuit.current_rate().abs() < epsilon && circuit_timer.time != MIN_CIRCUIT_TIME && !parent_circuit.1.1
         {
             info!("Circle spawned");
             let starting_radius = 10.0;
@@ -200,6 +205,7 @@ fn update_lightbulb(
                         }
                     );
                 });
+            parent_circuit.1.1 = true;
         }
     }
 }
@@ -249,13 +255,18 @@ const DELTA_T: f64 = 0.1;
 /// Updates the timer and other time senstitive parts of the simulation
 pub fn update_time(
     mut time: ResMut<CircuitTimer>,
-    mut query_circs: Query<(&mut DLRCCircuit, &mut CurrentTimePlot)>,
+    mut query_circs: Query<(&mut SpawnedThisSignum, &mut DLRCCircuit, &mut CurrentTimePlot)>,
 ) {
     if time.mode == CircuitTimerMode::Play {
         time.time += DELTA_T;
-        for (mut circ, mut plot) in query_circs.iter_mut() {
+        for (mut sts, mut circ, mut plot) in query_circs.iter_mut() {
             circ.0.circuit.tick(DELTA_T);
-            plot.0.push((time.time, circ.0.circuit.current()));
+            let new_current = circ.0.circuit.current();
+            plot.0.push((time.time, new_current));
+            if new_current.signum() != sts.0.signum() {
+                sts.1 = false;
+            }
+            sts.0 = new_current;
         }
     }
 
