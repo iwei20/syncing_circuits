@@ -49,6 +49,16 @@ pub struct CircleBundle {
     #[bundle]
     pub shape_bundle: ShapeBundle,
 }
+
+#[derive(Component)]
+pub struct CurrentArrow;
+
+#[derive(Bundle)]
+pub struct CurrentArrowBundle {
+    pub current_arrow: CurrentArrow,
+    #[bundle]
+    pub sprite_bundle: SpriteBundle
+}
 /// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness.
 pub struct DLCPlugin;
 
@@ -61,7 +71,8 @@ impl Plugin for DLCPlugin {
                 mode: CircuitTimerMode::Pause,
             })
             .add_system(update_lightbulb)
-            .add_system(expand_circles);
+            .add_system(expand_circles)
+            .add_system(update_current_arrow);
     }
 }
 
@@ -128,6 +139,16 @@ fn spawn_dlc(
                     Transform::from_scale(Vec3::splat(18.0))
                         .with_translation(Vec3::new(-505.0, 335.0, 15.0))
                 )
+            });
+        }).with_children(|parent| {
+            parent.spawn_bundle(CurrentArrowBundle {
+                current_arrow: CurrentArrow,
+                sprite_bundle: SpriteBundle {
+                    texture: asset_server.load("whitearrow.png"),
+                    transform: Transform::from_scale(Vec3::splat(0.2))
+                            .with_translation(Vec3::new(-505.0, 600.0, 10.0)),
+                    ..default()
+                }
             });
         });
 }
@@ -243,4 +264,19 @@ pub fn update_time(
         time.mode = CircuitTimerMode::Pause;
     }
     time.time = time.time.max(MIN_CIRCUIT_TIME);
+}
+
+fn update_current_arrow(
+    query_circs: Query<&DLRCCircuit>,
+    mut query_arrows: Query<(&Parent, &CurrentArrow, &mut Transform)>
+) {
+    for (parent, _currentarrow, mut transform) in query_arrows.iter_mut() {
+        let parent_circuit = 
+            query_circs
+                .get(parent.0)
+                .expect("Couldn't find parent circuit of this arrow");
+
+        let current = parent_circuit.0.circuit.current();
+        *transform = transform.with_scale(Vec3::new(0.2 * current.signum() as f32, 0.2, 0.2));
+    }
 }
