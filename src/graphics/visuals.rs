@@ -9,60 +9,6 @@ use bevy_prototype_lyon::{
 use crate::DisconnectLightCircuitCalculator;
 use std::cmp::PartialEq;
 
-#[derive(Component)]
-/// A component representing the circuit calculator, rather than the visual part.
-pub struct DLRCCircuit(pub DisconnectLightCircuitCalculator);
-
-#[derive(Component)]
-/// A component to store the current computed current, time pairs related to a circuit which has been
-pub struct CurrentTimePlot(pub Vec<(f64, f64)>);
-
-#[derive(Component)]
-/// A marker component to indicate this shape is a light.
-pub struct Light;
-
-#[derive(Component)]
-/// A component to store the radius of an expanding circle
-pub struct CircleRadius(pub f32);
-
-#[derive(Component)]
-pub struct SpawnedThisSignum(pub f64, pub bool);
-
-#[derive(Bundle)]
-/// A bundle of components defining a circuit
-pub struct CircuitBundle {
-    pub circuit: DLRCCircuit,
-    pub plot: CurrentTimePlot,
-    pub sts: SpawnedThisSignum,
-    #[bundle]
-    pub sprite_bundle: SpriteBundle,
-}
-
-#[derive(Bundle)]
-/// A bundle of componenets defining a lightbulb
-pub struct LightBundle {
-    pub light: Light,
-    #[bundle]
-    pub shape_bundle: ShapeBundle
-}
-
-#[derive(Bundle)]
-/// A bundle of componenets defining circle
-pub struct CircleBundle {
-    pub radius: CircleRadius,
-    #[bundle]
-    pub shape_bundle: ShapeBundle,
-}
-
-#[derive(Component)]
-pub struct CurrentArrow;
-
-#[derive(Bundle)]
-pub struct CurrentArrowBundle {
-    pub current_arrow: CurrentArrow,
-    #[bundle]
-    pub sprite_bundle: SpriteBundle
-}
 /// This plugin spawns all disconnected lightbulb circuits, adds a shared manipulable timer to the resources, and updates the lightbulb brightness.
 pub struct DLCPlugin;
 
@@ -87,18 +33,27 @@ pub const MAX_CIRCUIT_TIME: f64 = 100.0;
 /// there isn't much reason I can see for this to not always be zero
 pub const MIN_CIRCUIT_TIME: f64 = 0.0;
 
-#[derive(PartialEq)]
-/// The two modes the simulation can be in, paused or playing
-pub enum CircuitTimerMode {
-    Play,
-    Pause,
+/* CIRCUIT ENTITY */
+#[derive(Bundle)]
+/// A bundle of components defining a circuit
+pub struct CircuitBundle {
+    pub circuit: DLRCCircuit,
+    pub plot: CurrentTimePlot,
+    pub sts: SpawnedThisSignum,
+    #[bundle]
+    pub sprite_bundle: SpriteBundle,
 }
 
-/// A timer keeping track of the current time in the simulation
-pub struct CircuitTimer {
-    pub time: f64,
-    pub mode: CircuitTimerMode,
-}
+#[derive(Component)]
+/// A component representing the circuit calculator, rather than the visual part.
+pub struct DLRCCircuit(pub DisconnectLightCircuitCalculator);
+
+#[derive(Component)]
+/// A component to store the current computed current, time pairs related to a circuit which has been
+pub struct CurrentTimePlot(pub Vec<(f64, f64)>);
+
+#[derive(Component)]
+pub struct SpawnedThisSignum(pub f64, pub bool);
 
 /// Spawns all circuit + light entities
 fn spawn_dlc(
@@ -108,12 +63,6 @@ fn spawn_dlc(
     let dlcc = DLRCCircuit(DisconnectLightCircuitCalculator::with_constants(
         10.0, 0.2, 4.0, 6.0,
     ));
-
-    //let light_texture_handle = asset_server.load("dino-rino-flame-animation.png");
-    //let light_texture_atlas = TextureAtlas::from_grid_with_padding(light_texture_handle, Vec2::new(14.0, 48.0), 4, 1, Vec2::new(20.0, 48.0));
-    //let light_texture_atlas =
-    //    TextureAtlas::from_grid(light_texture_handle, Vec2::new(16.0, 48.0), 4, 1);
-    //let light_texture_atlus_handle = texture_atlases.add(light_texture_atlas);
 
     let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
         radius: 10.0,
@@ -158,8 +107,21 @@ fn spawn_dlc(
         });
 }
 
+/* LIGHTBULB ENTITY */
+#[derive(Bundle)]
+/// A bundle of components defining a lightbulb
+pub struct LightBundle {
+    pub light: Light,
+    #[bundle]
+    pub shape_bundle: ShapeBundle
+}
+
+#[derive(Component)]
+/// A marker component to indicate this shape is a light.
+pub struct Light;
+
 /// Updates the colors of all light entities based on the time provided by CircuitTimer and the
-/// current circuit.
+/// current circuit. Also, if the lightbulb power is at a peak, a circle is spawned.
 fn update_lightbulb(
     mut commands: Commands,
     circuit_timer: ResMut<CircuitTimer>,
@@ -210,6 +172,19 @@ fn update_lightbulb(
     }
 }
 
+/* CIRCLE ENTITY */
+#[derive(Bundle)]
+/// A bundle of componenets defining circle
+pub struct CircleBundle {
+    pub radius: CircleRadius,
+    #[bundle]
+    pub shape_bundle: ShapeBundle,
+}
+
+#[derive(Component)]
+/// A component to store the radius of an expanding circle
+pub struct CircleRadius(pub f32);
+
 /// Calculates what the alpha value of the circle should be to make it fade as the radius gets
 /// larger
 ///
@@ -248,6 +223,48 @@ fn expand_circles(
     }
 }
 
+/* CURRENT ARROW ENTITY */
+#[derive(Bundle)]
+/// An entity meant to show a current arrow
+pub struct CurrentArrowBundle {
+    pub current_arrow: CurrentArrow,
+    #[bundle]
+    pub sprite_bundle: SpriteBundle
+}
+
+#[derive(Component)]
+/// A marker for current arrow entities
+pub struct CurrentArrow;
+
+fn update_current_arrow(
+    query_circs: Query<&DLRCCircuit>,
+    mut query_arrows: Query<(&Parent, &CurrentArrow, &mut Transform)>
+) {
+    for (parent, _currentarrow, mut transform) in query_arrows.iter_mut() {
+        let parent_circuit = 
+            query_circs
+                .get(parent.0)
+                .expect("Couldn't find parent circuit of this arrow");
+
+        let current = parent_circuit.0.circuit.current();
+        *transform = transform.with_scale(Vec3::new(0.2 * current.signum() as f32, 0.2, 0.2));
+    }
+}
+
+/* Circuit Timer Resource */
+#[derive(PartialEq)]
+/// The two modes the simulation can be in, paused or playing
+pub enum CircuitTimerMode {
+    Play,
+    Pause,
+}
+
+/// A timer keeping track of the current time in the simulation
+pub struct CircuitTimer {
+    pub time: f64,
+    pub mode: CircuitTimerMode,
+}
+
 ///the amount of simulation time passing every frame
 ///this intentionally doesn't make the simulation run in real time
 const DELTA_T: f64 = 0.1;
@@ -275,19 +292,4 @@ pub fn update_time(
         time.mode = CircuitTimerMode::Pause;
     }
     time.time = time.time.max(MIN_CIRCUIT_TIME);
-}
-
-fn update_current_arrow(
-    query_circs: Query<&DLRCCircuit>,
-    mut query_arrows: Query<(&Parent, &CurrentArrow, &mut Transform)>
-) {
-    for (parent, _currentarrow, mut transform) in query_arrows.iter_mut() {
-        let parent_circuit = 
-            query_circs
-                .get(parent.0)
-                .expect("Couldn't find parent circuit of this arrow");
-
-        let current = parent_circuit.0.circuit.current();
-        *transform = transform.with_scale(Vec3::new(0.2 * current.signum() as f32, 0.2, 0.2));
-    }
 }
