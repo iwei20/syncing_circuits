@@ -205,7 +205,7 @@ fn expand_circles(
     mut query: Query<(Entity, &mut CircleRadius, &mut Path, &mut DrawMode)>,
 ) {
     for (entity, mut radius, mut path, mut draw_mode) in query.iter_mut() {
-        if radius.0 > 200.0 {
+        if radius.0 > 100.0 {
             info!("Circle despawned");
             commands.entity(entity).despawn();
         }
