@@ -60,10 +60,7 @@ pub struct SpawnedThisSignum(pub f64, pub bool);
 pub struct LastCurrentRateSignum(pub f64);
 
 /// Spawns all circuit + light entities
-fn spawn_dlc(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>
-) {
+fn spawn_dlc(mut commands: Commands, asset_server: Res<AssetServer>) {
     let dlcc = DLRCCircuit(DisconnectLightCircuitCalculator::with_constants(
         10.0, 0.2, 4.0, 6.0,
     ));
@@ -93,21 +90,22 @@ fn spawn_dlc(
                 shape_bundle: circle_builder.build(
                     DrawMode::Outlined {
                         fill_mode: FillMode::color(Color::hsla(0.0, 0.0, 0.0, 0.7)),
-                        outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, 1.0), 1.0)
+                        outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, 1.0), 1.0),
                     },
                     Transform::from_scale(Vec3::splat(18.0))
-                        .with_translation(Vec3::new(-505.0, 335.0, 15.0))
-                )
+                        .with_translation(Vec3::new(-505.0, 335.0, 15.0)),
+                ),
             });
-        }).with_children(|parent| {
+        })
+        .with_children(|parent| {
             parent.spawn_bundle(CurrentArrowBundle {
                 current_arrow: CurrentArrow,
                 sprite_bundle: SpriteBundle {
                     texture: asset_server.load("whitearrow.png"),
                     transform: Transform::from_scale(Vec3::splat(0.2))
-                            .with_translation(Vec3::new(-505.0, 600.0, 10.0)),
+                        .with_translation(Vec3::new(-505.0, 600.0, 10.0)),
                     ..default()
-                }
+                },
             });
         });
 }
@@ -118,7 +116,7 @@ fn spawn_dlc(
 pub struct LightBundle {
     pub light: Light,
     #[bundle]
-    pub shape_bundle: ShapeBundle
+    pub shape_bundle: ShapeBundle,
 }
 
 #[derive(Component)]
@@ -131,21 +129,27 @@ fn update_lightbulb(
     mut commands: Commands,
     circuit_timer: ResMut<CircuitTimer>,
     mut query_lights: Query<(Entity, &Parent, &mut DrawMode), With<Light>>,
-    mut query_circs: Query<(&mut DLRCCircuit, &mut SpawnedThisSignum, &mut LastCurrentRateSignum)>,
+    mut query_circs: Query<(
+        &mut DLRCCircuit,
+        &mut SpawnedThisSignum,
+        &mut LastCurrentRateSignum,
+    )>,
 ) {
     for (entity, parent, mut draw_mode) in query_lights.iter_mut() {
         let mut parent_circuit = query_circs
             .get_mut(parent.0)
             .expect("couldn't find child to light");
-        let new_power = parent_circuit.0.0.lightbulb_power();
+        let new_power = parent_circuit.0 .0.lightbulb_power();
 
         *draw_mode = DrawMode::Outlined {
             fill_mode: FillMode::color(Color::hsla(0.0, 0.0, new_power as f32 * 6.0, 0.7)),
-            outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, 1.0), 1.0)
+            outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, 1.0), 1.0),
         };
 
         let epsilon = 0.2;
-        if parent_circuit.0.0.circuit.current_rate().signum() != parent_circuit.2.0 && circuit_timer.time > MIN_CIRCUIT_TIME + epsilon && !parent_circuit.1.1
+        if parent_circuit.0 .0.circuit.current_rate().signum() != parent_circuit.2 .0
+            && circuit_timer.time > MIN_CIRCUIT_TIME + epsilon
+            && !parent_circuit.1 .1
         {
             info!("Circle spawned");
             let starting_radius = 10.0;
@@ -153,23 +157,22 @@ fn update_lightbulb(
                 radius: starting_radius,
                 ..shapes::Circle::default()
             });
-            commands
-                .entity(entity)
-                .with_children(|parent| {
-                    parent.spawn_bundle(
-                        CircleBundle {
-                            radius: CircleRadius(starting_radius),
-                            shape_bundle: circle_builder.build(
-                                DrawMode::Outlined {
-                                    fill_mode: FillMode::color(Color::hsla(0.0, 0.0, 0.0, 0.0)),
-                                    outline_mode: StrokeMode::new(Color::hsla(0.0, 0.0, 1.0, calculate_circle_alpha(starting_radius)), 1.0),
-                                },
-                                Transform::identity()
-                            )
-                        }
-                    );
+            commands.entity(entity).with_children(|parent| {
+                parent.spawn_bundle(CircleBundle {
+                    radius: CircleRadius(starting_radius),
+                    shape_bundle: circle_builder.build(
+                        DrawMode::Outlined {
+                            fill_mode: FillMode::color(Color::hsla(0.0, 0.0, 0.0, 0.0)),
+                            outline_mode: StrokeMode::new(
+                                Color::hsla(0.0, 0.0, 1.0, calculate_circle_alpha(starting_radius)),
+                                1.0,
+                            ),
+                        },
+                        Transform::identity(),
+                    ),
                 });
-            parent_circuit.1.1 = true;
+            });
+            parent_circuit.1 .1 = true;
         }
     }
 }
@@ -231,7 +234,7 @@ fn expand_circles(
 pub struct CurrentArrowBundle {
     pub current_arrow: CurrentArrow,
     #[bundle]
-    pub sprite_bundle: SpriteBundle
+    pub sprite_bundle: SpriteBundle,
 }
 
 #[derive(Component)]
@@ -240,13 +243,12 @@ pub struct CurrentArrow;
 
 fn update_current_arrow(
     query_circs: Query<&DLRCCircuit>,
-    mut query_arrows: Query<(&Parent, &CurrentArrow, &mut Transform)>
+    mut query_arrows: Query<(&Parent, &CurrentArrow, &mut Transform)>,
 ) {
     for (parent, _currentarrow, mut transform) in query_arrows.iter_mut() {
-        let parent_circuit = 
-            query_circs
-                .get(parent.0)
-                .expect("Couldn't find parent circuit of this arrow");
+        let parent_circuit = query_circs
+            .get(parent.0)
+            .expect("Couldn't find parent circuit of this arrow");
 
         let current = parent_circuit.0.circuit.current();
         *transform = transform.with_scale(Vec3::new(0.2 * current.signum() as f32, 0.2, 0.2));
@@ -274,7 +276,12 @@ const DELTA_T: f64 = 0.1;
 /// Updates the timer and other time senstitive parts of the simulation
 pub fn update_time(
     mut time: ResMut<CircuitTimer>,
-    mut query_circs: Query<(&mut DLRCCircuit, &mut CurrentTimePlot, &mut SpawnedThisSignum, &mut LastCurrentRateSignum)>,
+    mut query_circs: Query<(
+        &mut DLRCCircuit,
+        &mut CurrentTimePlot,
+        &mut SpawnedThisSignum,
+        &mut LastCurrentRateSignum,
+    )>,
 ) {
     if time.mode == CircuitTimerMode::Play {
         time.time += DELTA_T;

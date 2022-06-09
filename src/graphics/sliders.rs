@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 use bevy_egui::egui::{
-    plot::{Line, Plot, Points, Value, Values, GridMark, Text},
-    Align2,
-    Color32,
+    plot::{GridMark, Line, Plot, Points, Text, Value, Values},
+    Align2, Color32, RichText,
 };
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
@@ -41,11 +40,23 @@ fn left_slider_frame(
             );
             for (mut dlcc, _) in query_circs.iter_mut() {
                 let r = &mut dlcc.0.circuit.resistance;
-                ui.add(egui::Slider::new(r, 0.00..=1.0).text("R (\u{03A9})").fixed_decimals(2));
+                ui.add(
+                    egui::Slider::new(r, 0.00..=1.0)
+                        .text("R (\u{03A9})")
+                        .fixed_decimals(2),
+                );
                 let l = &mut dlcc.0.circuit.inductance;
-                ui.add(egui::Slider::new(l, 0.0..=10.0).text("L (H)").fixed_decimals(2));
+                ui.add(
+                    egui::Slider::new(l, 0.0..=10.0)
+                        .text("L (H)")
+                        .fixed_decimals(2),
+                );
                 let c = &mut dlcc.0.circuit.capacitance;
-                ui.add(egui::Slider::new(c, 0.0..=10.0).text("C (F)").fixed_decimals(2));
+                ui.add(
+                    egui::Slider::new(c, 0.0..=10.0)
+                        .text("C (F)")
+                        .fixed_decimals(2),
+                );
                 let start_q = &mut dlcc.0.circuit.startcharge;
                 ui.add(
                     egui::Slider::new(start_q, 0.0..=50.0)
@@ -100,17 +111,34 @@ fn circuit_plot(mut egui_ctx: ResMut<EguiContext>, query_circs: Query<&CurrentTi
                     .allow_drag(false)
                     .allow_boxed_zoom(false)
                     .center_y_axis(true)
-                    .x_grid_spacer(|_| vec![GridMark {value: 0.0, step_size: f64::INFINITY}])
-                    .y_grid_spacer(|_| vec![GridMark {value: 0.0, step_size: f64::INFINITY}])
+                    .x_grid_spacer(|_| {
+                        vec![GridMark {
+                            value: 0.0,
+                            step_size: f64::INFINITY,
+                        }]
+                    })
+                    .y_grid_spacer(|_| {
+                        vec![GridMark {
+                            value: 0.0,
+                            step_size: f64::INFINITY,
+                        }]
+                    })
                     .show_x(false)
                     .show_y(false)
                     .show(ui, |plot_ui| {
                         plot_ui.line(line);
-                        plot_ui.points(Points::new(Values::from_values(boundry_points)).color(Color32::TRANSPARENT));
-                        plot_ui.text(Text::new(Value::new(1.0, 10.0), "current".to_string())
-                            .anchor(Align2::LEFT_TOP));
-                        plot_ui.text(Text::new(Value::new(100.0, -0.1), "time".to_string())
-                            .anchor(Align2::LEFT_TOP));
+                        plot_ui.points(
+                            Points::new(Values::from_values(boundry_points))
+                                .color(Color32::TRANSPARENT),
+                        );
+                        plot_ui.text(
+                            Text::new(Value::new(1.0, 10.0), RichText::new("current").size(20.0))
+                                .anchor(Align2::LEFT_TOP),
+                        );
+                        plot_ui.text(
+                            Text::new(Value::new(90.0, -0.1), RichText::new("time").size(20.0))
+                                .anchor(Align2::LEFT_TOP),
+                        );
                     });
             }
         });

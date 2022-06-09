@@ -1,9 +1,9 @@
-//! deals with the visuals and a part of the game 
+//! deals with the visuals and a part of the game
 
+mod effects;
 mod sliders;
 mod visuals;
-mod effects;
 
+pub use effects::*;
 pub use sliders::*;
 pub use visuals::*;
-pub use effects::*;

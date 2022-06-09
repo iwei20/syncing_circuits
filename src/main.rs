@@ -1,10 +1,9 @@
 use bevy::prelude::*;
-use syncing_circuits::graphics::{update_time, DLCPlugin, UIWindowsPlugin, EffectsPlugin};
+use syncing_circuits::graphics::{update_time, DLCPlugin, EffectsPlugin, UIWindowsPlugin};
 
 fn main() {
     let mut app = App::new();
-    app
-        .insert_resource(Msaa { samples: 4 })
+    app.insert_resource(Msaa { samples: 4 })
         .insert_resource(ClearColor(Color::BLACK))
         .add_plugins(DefaultPlugins)
         .add_plugin(UIWindowsPlugin)
