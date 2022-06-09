@@ -18,19 +18,19 @@ struct VertexOutput {
 	[[location(2)]] uv: vec2<f32>;
 };
 
-struct Time {
+struct Info {
 	time: f32;
+	power: f32;
 };
 
-[[group(1), binding(0)]] var<uniform> time: Time;
+[[group(1), binding(0)]] var<uniform> info: Info;
 
 [[stage(fragment)]]
 fn fragment(input: VertexOutput) -> [[location(0)]] vec4<f32> {
 	//var r = random_vec2(vec2<f32>(input.world_position[0], input.world_position[1]));
-	var rng = random(time.time) + random_vec2(input.uv);
-	var r = random(rng);
-	var g = random(r);
-	var b = random(g);
-	var output = vec4<f32>(r, g, b, 0.35);
+	var r = random(random(info.time) + random_vec2(input.uv)) * 0.5;
+
+	var alpha = 0.6 - info.power * 1024.0 / 255.0;
+	var output = vec4<f32>(r, r, r, alpha);
     return output;
 }

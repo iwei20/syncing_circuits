@@ -1,5 +1,7 @@
 use bevy::{render::{render_resource::{BindGroup, BindGroupLayoutDescriptor, BindGroupDescriptor, Buffer, BindGroupLayoutEntry, ShaderStages, BindingType, BufferBindingType, BufferSize, BindGroupEntry, BufferUsages, BufferInitDescriptor, std140::{AsStd140, Std140}}, render_asset::{RenderAsset, PrepareAssetError, RenderAssets}, renderer::{RenderDevice, RenderQueue}, RenderApp, RenderStage}, prelude::{Plugin, ResMut, Assets, Mesh, Commands, shape, Transform, default, Res, Component, Bundle, Query}, sprite::{Material2d, Material2dPipeline, Material2dPlugin, MaterialMesh2dBundle}, reflect::TypeUuid, ecs::{system::{SystemParamItem, lifetimeless::SRes}, event::Events}, window::{Windows, WindowResized}, math::Vec3, core::Time};
 
+use super::DLRCCircuit;
+
 pub struct EffectsPlugin;
 
 impl Plugin for EffectsPlugin {
@@ -9,8 +11,8 @@ impl Plugin for EffectsPlugin {
            .add_system(resize_notificator);
 
         app.sub_app_mut(RenderApp)
-           .add_system_to_stage(RenderStage::Extract, extract_time)
-           .add_system_to_stage(RenderStage::Prepare, prepare_time)
+           .add_system_to_stage(RenderStage::Extract, extract_info)
+           .add_system_to_stage(RenderStage::Prepare, prepare_material)
            ;
     }
 }
@@ -38,7 +40,8 @@ fn spawn_foreground(
             mesh2dbundle: MaterialMesh2dBundle {
                 mesh: meshes.add(Mesh::from(shape::Quad::default())).into(),
                 material: materials.add(NoiseMaterial {
-                    time: 0.0
+                    time: 0.0,
+                    alpha: 0.75,
                 }),
                 transform: Transform::from_scale(Vec3::new(window.width(), window.height(), 25.0)).with_translation(Vec3::new(0.0, 0.0, 10.0)),
                 ..default()
@@ -59,7 +62,8 @@ fn resize_notificator(resize_event: Res<Events<WindowResized>>, mut query: Query
 #[derive(TypeUuid, Clone, AsStd140)]
 #[uuid = "cd3d98e9-bc74-4e0b-9f2e-cd9372bfcdcb"]
 pub struct NoiseMaterial {
-    time: f32
+    time: f32,
+    alpha: f32
 }
 
 pub struct NoiseMaterialGPU {
@@ -137,22 +141,25 @@ impl RenderAsset for NoiseMaterial {
 }
 
 #[derive(AsStd140)]
-struct ExtractedTime {
+struct ExtractedInfo {
     seconds_since_startup: f32,
+    power: f32,
 }
 
-fn extract_time(mut commands: Commands, time: Res<Time>) {
-    commands.insert_resource(ExtractedTime { 
+fn extract_info(mut commands: Commands, time: Res<Time>, query_circs: Query<&DLRCCircuit>) {
+    let total_power = query_circs.iter().map(|circuit| circuit.0.lightbulb_power()).sum::<f64>() as f32;
+    commands.insert_resource(ExtractedInfo { 
         seconds_since_startup: time.seconds_since_startup() as f32, 
+        power: total_power
     });
 }
 
-fn prepare_time(extracted_time: Res<ExtractedTime>, mut materials: ResMut<RenderAssets<NoiseMaterial>>, render_queue: Res<RenderQueue>) {
+fn prepare_material(extracted_info: Res<ExtractedInfo>, mut materials: ResMut<RenderAssets<NoiseMaterial>>, render_queue: Res<RenderQueue>) {
     for material in materials.values_mut() {
         render_queue.write_buffer(
             &material.buffer, 
             0, 
-            extracted_time.as_std140().as_bytes()
+            extracted_info.as_std140().as_bytes()
         );
     }
 }
