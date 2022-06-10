@@ -33,14 +33,18 @@ fn left_slider_frame(
         .collapsible(false)
         .frame(
             egui::Frame::dark_canvas(&egui_context.ctx_mut().style())
-            .fill(egui::Color32::TRANSPARENT)
-            .stroke(egui::Stroke { width: 1.0, color: egui::Color32::TRANSPARENT }))
+                .fill(egui::Color32::TRANSPARENT)
+                .stroke(egui::Stroke {
+                    width: 1.0,
+                    color: egui::Color32::TRANSPARENT,
+                }),
+        )
         .title_bar(false)
         .show(egui_context.ctx_mut(), |ui| {
             ui.add(
                 //the f32 cast should be fine
                 egui::ProgressBar::new((time.time / (MAX_CIRCUIT_TIME - MIN_CIRCUIT_TIME)) as f32)
-                    .text(format!("time since start: {:.1} (s)", time.time))
+                    .text(format!("time since start: {:.1} (s)", time.time)),
             );
             for (mut dlcc, _) in query_circs.iter_mut() {
                 let r = &mut dlcc.0.circuit.resistance;
@@ -98,13 +102,21 @@ fn circuit_plot(mut egui_ctx: ResMut<EguiContext>, query_circs: Query<&CurrentTi
         .collapsible(false)
         .frame(
             egui::Frame::dark_canvas(&egui_ctx.ctx_mut().style())
-            .fill(egui::Color32::TRANSPARENT)
-            .stroke(egui::Stroke { width: 1.0, color: egui::Color32::TRANSPARENT }))
+                .fill(egui::Color32::TRANSPARENT)
+                .stroke(egui::Stroke {
+                    width: 1.0,
+                    color: egui::Color32::TRANSPARENT,
+                }),
+        )
         .show(egui_ctx.ctx_mut(), |ui| {
             for points in query_circs.iter() {
                 let line = Line::new(Values::from_values_iter(
                     points.0.iter().map(|&(a, b)| Value::new(a, b)),
-                )).stroke(egui::Stroke {color: Color32::from_rgb(0, 92, 128), width: 3.0});
+                ))
+                .stroke(egui::Stroke {
+                    color: Color32::from_rgb(0, 92, 128),
+                    width: 3.0,
+                });
 
                 //stupid hack to get graph to have fixed axis
                 //basically just add the boundry points to the graph
@@ -144,16 +156,18 @@ fn circuit_plot(mut egui_ctx: ResMut<EguiContext>, query_circs: Query<&CurrentTi
                                 .color(Color32::TRANSPARENT),
                         );
                         plot_ui.text(
-                            Text::new(Value::new(1.0, 10.0), RichText::new("current")
-                                      .size(20.0)
-                                      .color(Color32::WHITE))
-                                .anchor(Align2::LEFT_TOP),
+                            Text::new(
+                                Value::new(1.0, 10.0),
+                                RichText::new("current").size(20.0).color(Color32::WHITE),
+                            )
+                            .anchor(Align2::LEFT_TOP),
                         );
                         plot_ui.text(
-                            Text::new(Value::new(90.0, -0.1), RichText::new("time")
-                                      .size(20.0)
-                                      .color(Color32::WHITE))
-                                .anchor(Align2::LEFT_TOP),
+                            Text::new(
+                                Value::new(90.0, -0.1),
+                                RichText::new("time").size(20.0).color(Color32::WHITE),
+                            )
+                            .anchor(Align2::LEFT_TOP),
                         );
                     });
             }
