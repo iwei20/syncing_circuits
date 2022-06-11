@@ -153,7 +153,7 @@ fn update_lightbulb(
         if parent_circuit.0 .0.circuit.current_rate().signum() != parent_circuit.2 .0
             && circuit_timer.time > MIN_CIRCUIT_TIME + epsilon
             && !parent_circuit.1 .1
-            && parent_circuit.0.0.circuit.current().abs() > epsilon
+            && parent_circuit.0 .0.circuit.current().abs() > epsilon
         {
             info!("Circle spawned");
             let starting_radius = 10.0;
@@ -255,10 +255,17 @@ fn update_current_arrow(
             .expect("Couldn't find parent circuit of this arrow");
 
         let current = parent_circuit.0.circuit.current();
-        transform.rotation = Quat::mul_quat(transform.rotation, Quat::from_rotation_z(-current as f32 * 0.1));
+        transform.rotation = Quat::mul_quat(
+            transform.rotation,
+            Quat::from_rotation_z(-current as f32 * 0.1),
+        );
         let epsilon = 0.01;
         if current.abs() > epsilon {
-           *transform = transform.with_scale(Vec3::new(-ARROW_SPRITE_SCALE * current.signum() as f32, ARROW_SPRITE_SCALE, ARROW_SPRITE_SCALE));
+            *transform = transform.with_scale(Vec3::new(
+                -ARROW_SPRITE_SCALE * current.signum() as f32,
+                ARROW_SPRITE_SCALE,
+                ARROW_SPRITE_SCALE,
+            ));
         }
     }
 }
