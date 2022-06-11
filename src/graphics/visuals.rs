@@ -149,6 +149,7 @@ fn update_lightbulb(
         let epsilon = 0.2;
         if parent_circuit.0 .0.circuit.current_rate().signum() != parent_circuit.2 .0
             && circuit_timer.time > MIN_CIRCUIT_TIME + epsilon
+            && circuit_timer.time < MAX_CIRCUIT_TIME - epsilon
             && !parent_circuit.1 .1
         {
             info!("Circle spawned");
