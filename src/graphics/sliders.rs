@@ -56,14 +56,14 @@ fn left_slider_frame(
                 );
                 let l = &mut dlcc.0.circuit.inductance;
                 ui.add(
-                    egui::Slider::new(l, 0.0..=10.0)
+                    egui::Slider::new(l, 0.1..=10.0)
                         .text("L (H)")
                         .text_color(egui::Color32::WHITE)
                         .fixed_decimals(2),
                 );
                 let c = &mut dlcc.0.circuit.capacitance;
                 ui.add(
-                    egui::Slider::new(c, 0.0..=10.0)
+                    egui::Slider::new(c, 0.1..=10.0)
                         .text("C (F)")
                         .text_color(egui::Color32::WHITE)
                         .fixed_decimals(2),

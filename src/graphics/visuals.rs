@@ -59,6 +59,8 @@ pub struct SpawnedThisSignum(pub f64, pub bool);
 #[derive(Component)]
 pub struct LastCurrentRateSignum(pub f64);
 
+const ARROW_SPRITE_SCALE: f32 = 0.5;
+
 /// Spawns all circuit + light entities
 fn spawn_dlc(mut commands: Commands, asset_server: Res<AssetServer>) {
     let dlcc = DLRCCircuit(DisconnectLightCircuitCalculator::with_constants(
@@ -101,9 +103,10 @@ fn spawn_dlc(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent.spawn_bundle(CurrentArrowBundle {
                 current_arrow: CurrentArrow,
                 sprite_bundle: SpriteBundle {
-                    texture: asset_server.load("whitearrow.png"),
-                    transform: Transform::from_scale(Vec3::splat(0.2))
-                        .with_translation(Vec3::new(-505.0, 600.0, 10.0)),
+                    texture: asset_server.load("whitearrow_box.png"),
+                    transform: Transform::from_scale(Vec3::splat(ARROW_SPRITE_SCALE))
+                        //.with_translation(Vec3::new(-505.0, 600.0, 10.0)),
+                        .with_translation(Vec3::new(0.0, 75.0, 0.0)),
                     ..default()
                 },
             });
@@ -150,6 +153,7 @@ fn update_lightbulb(
         if parent_circuit.0 .0.circuit.current_rate().signum() != parent_circuit.2 .0
             && circuit_timer.time > MIN_CIRCUIT_TIME + epsilon
             && !parent_circuit.1 .1
+            && parent_circuit.0.0.circuit.current().abs() > epsilon
         {
             info!("Circle spawned");
             let starting_radius = 10.0;
@@ -251,7 +255,11 @@ fn update_current_arrow(
             .expect("Couldn't find parent circuit of this arrow");
 
         let current = parent_circuit.0.circuit.current();
-        *transform = transform.with_scale(Vec3::new(0.2 * current.signum() as f32, 0.2, 0.2));
+        transform.rotation = Quat::mul_quat(transform.rotation, Quat::from_rotation_z(-current as f32 * 0.1));
+        let epsilon = 0.01;
+        if current.abs() > epsilon {
+           *transform = transform.with_scale(Vec3::new(-ARROW_SPRITE_SCALE * current.signum() as f32, ARROW_SPRITE_SCALE, ARROW_SPRITE_SCALE));
+        }
     }
 }
 
