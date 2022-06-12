@@ -40,7 +40,7 @@ fn volume(
     }
     power_avg /= circ_amount as f64;
     if let Some(sink) = audio_sinks.get(&music_controller.0) {
-        sink.set_volume((power_avg as f32 * 5.0).min(0.8));
+        sink.set_volume(0.5 + (power_avg as f32).min(0.5));
     }
 }
 
