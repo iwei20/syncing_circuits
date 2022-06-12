@@ -130,6 +130,8 @@ pub struct Light;
 /// current circuit. Also, if the lightbulb power is at a peak, a circle is spawned.
 fn update_lightbulb(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
     circuit_timer: ResMut<CircuitTimer>,
     mut query_lights: Query<(Entity, &Parent, &mut DrawMode), With<Light>>,
     mut query_circs: Query<(
@@ -155,6 +157,10 @@ fn update_lightbulb(
             && !parent_circuit.1 .1
             && parent_circuit.0 .0.circuit.current().abs() > epsilon
         {
+            //play circle pop sound
+            let sound_effect = asset_server.load("pop.ogg");
+            audio.play(sound_effect);
+
             info!("Circle spawned");
             let starting_radius = 10.0;
             let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
