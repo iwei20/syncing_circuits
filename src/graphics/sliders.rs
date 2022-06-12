@@ -28,10 +28,18 @@ fn left_slider_frame(
     mut time: ResMut<CircuitTimer>,
 ) {
     egui::Window::new("Circuit")
-        .anchor(Align2::LEFT_CENTER, [0.0, -200.0])
+        .anchor(Align2::LEFT_CENTER, [50.0, 200.0])
         .fixed_size([200.0, 200.0])
         .collapsible(false)
-        .frame(egui::Frame::dark_canvas(&egui_context.ctx_mut().style()))
+        .frame(
+            egui::Frame::dark_canvas(&egui_context.ctx_mut().style())
+                .fill(egui::Color32::TRANSPARENT)
+                .stroke(egui::Stroke {
+                    width: 1.0,
+                    color: egui::Color32::TRANSPARENT,
+                }),
+        )
+        .title_bar(false)
         .show(egui_context.ctx_mut(), |ui| {
             ui.add(
                 //the f32 cast should be fine
@@ -43,24 +51,28 @@ fn left_slider_frame(
                 ui.add(
                     egui::Slider::new(r, 0.00..=1.0)
                         .text("R (\u{03A9})")
+                        .text_color(egui::Color32::WHITE)
                         .fixed_decimals(2),
                 );
                 let l = &mut dlcc.0.circuit.inductance;
                 ui.add(
-                    egui::Slider::new(l, 0.0..=10.0)
+                    egui::Slider::new(l, 0.1..=10.0)
                         .text("L (H)")
+                        .text_color(egui::Color32::WHITE)
                         .fixed_decimals(2),
                 );
                 let c = &mut dlcc.0.circuit.capacitance;
                 ui.add(
-                    egui::Slider::new(c, 0.0..=10.0)
+                    egui::Slider::new(c, 0.1..=10.0)
                         .text("C (F)")
+                        .text_color(egui::Color32::WHITE)
                         .fixed_decimals(2),
                 );
                 let start_q = &mut dlcc.0.circuit.startcharge;
                 ui.add(
                     egui::Slider::new(start_q, 0.0..=50.0)
                         .text("starting Q (C)")
+                        .text_color(egui::Color32::WHITE)
                         .fixed_decimals(2),
                 );
             }
@@ -85,15 +97,26 @@ fn left_slider_frame(
 fn circuit_plot(mut egui_ctx: ResMut<EguiContext>, query_circs: Query<&CurrentTimePlot>) {
     egui::Window::new("current")
         .title_bar(false)
-        .anchor(Align2::RIGHT_TOP, [0.0, 100.0])
+        .anchor(Align2::LEFT_TOP, [0.0, 100.0])
         .fixed_size([400.0, 400.0])
         .collapsible(false)
-        .frame(egui::Frame::dark_canvas(&egui_ctx.ctx_mut().style()))
+        .frame(
+            egui::Frame::dark_canvas(&egui_ctx.ctx_mut().style())
+                .fill(egui::Color32::TRANSPARENT)
+                .stroke(egui::Stroke {
+                    width: 1.0,
+                    color: egui::Color32::TRANSPARENT,
+                }),
+        )
         .show(egui_ctx.ctx_mut(), |ui| {
             for points in query_circs.iter() {
                 let line = Line::new(Values::from_values_iter(
                     points.0.iter().map(|&(a, b)| Value::new(a, b)),
-                ));
+                ))
+                .stroke(egui::Stroke {
+                    color: Color32::from_rgb(0, 92, 128),
+                    width: 3.0,
+                });
 
                 //stupid hack to get graph to have fixed axis
                 //basically just add the boundry points to the graph
@@ -104,6 +127,7 @@ fn circuit_plot(mut egui_ctx: ResMut<EguiContext>, query_circs: Query<&CurrentTi
                     Value::new(MAX_CIRCUIT_TIME, 10.0),
                 ];
                 Plot::new("")
+                    .show_background(false)
                     .view_aspect(1.0)
                     .data_aspect(5.0)
                     .allow_scroll(false)
@@ -132,12 +156,18 @@ fn circuit_plot(mut egui_ctx: ResMut<EguiContext>, query_circs: Query<&CurrentTi
                                 .color(Color32::TRANSPARENT),
                         );
                         plot_ui.text(
-                            Text::new(Value::new(1.0, 10.0), RichText::new("current").size(20.0))
-                                .anchor(Align2::LEFT_TOP),
+                            Text::new(
+                                Value::new(1.0, 10.0),
+                                RichText::new("current").size(20.0).color(Color32::WHITE),
+                            )
+                            .anchor(Align2::LEFT_TOP),
                         );
                         plot_ui.text(
-                            Text::new(Value::new(90.0, -0.1), RichText::new("time").size(20.0))
-                                .anchor(Align2::LEFT_TOP),
+                            Text::new(
+                                Value::new(90.0, -0.1),
+                                RichText::new("time").size(20.0).color(Color32::WHITE),
+                            )
+                            .anchor(Align2::LEFT_TOP),
                         );
                     });
             }

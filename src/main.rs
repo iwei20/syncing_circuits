@@ -1,5 +1,7 @@
 use bevy::prelude::*;
-use syncing_circuits::graphics::{update_time, DLCPlugin, EffectsPlugin, UIWindowsPlugin};
+use syncing_circuits::graphics::{
+    update_time, DLCPlugin, EffectsPlugin, MusicPlugin, UIWindowsPlugin,
+};
 
 fn main() {
     let mut app = App::new();
@@ -7,6 +9,7 @@ fn main() {
         .insert_resource(ClearColor(Color::BLACK))
         .add_plugins(DefaultPlugins)
         .add_plugin(UIWindowsPlugin)
+        .add_plugin(MusicPlugin)
         .add_startup_system(start_camera)
         .add_plugin(EffectsPlugin)
         .add_plugin(DLCPlugin)
