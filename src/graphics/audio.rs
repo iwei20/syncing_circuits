@@ -1,5 +1,5 @@
-use bevy::{audio::AudioSink, prelude::*};
 use crate::graphics::DLRCCircuit;
+use bevy::{audio::AudioSink, prelude::*};
 
 pub struct MusicController(Handle<AudioSink>, Handle<AudioSink>);
 
@@ -7,8 +7,7 @@ pub struct MusicPlugin;
 
 impl Plugin for MusicPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(setup_audio)
-            .add_system(volume);
+        app.add_startup_system(setup_audio).add_system(volume);
     }
 }
 
@@ -20,16 +19,10 @@ fn setup_audio(
 ) {
     let static_noise = asset_server.load("01-White-Noise-10min-popgone.ogg");
     let music = asset_server.load("taishi-reverie-loop.ogg");
-    let static_noise_handle = audio_sinks.get_handle(
-        audio.play_with_settings(
-            static_noise,
-            PlaybackSettings::LOOP,
-        ));
-    let music_handle = audio_sinks.get_handle(
-        audio.play_with_settings(
-            music,
-            PlaybackSettings::LOOP,
-        ));
+    let static_noise_handle =
+        audio_sinks.get_handle(audio.play_with_settings(static_noise, PlaybackSettings::LOOP));
+    let music_handle =
+        audio_sinks.get_handle(audio.play_with_settings(music, PlaybackSettings::LOOP));
     commands.insert_resource(MusicController(static_noise_handle, music_handle));
 }
 
@@ -52,4 +45,3 @@ fn volume(
         sink.set_volume(max_vol - (power_avg as f32).min(max_vol));
     }
 }
-
