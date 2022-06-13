@@ -59,7 +59,7 @@ pub struct SpawnedThisSignum(pub f64, pub bool);
 #[derive(Component)]
 pub struct LastCurrentRateSignum(pub f64);
 
-const ARROW_SPRITE_SCALE: f32 = 0.5;
+const ARROW_SPRITE_SCALE: f32 = 0.45;
 
 /// Spawns all circuit + light entities
 fn spawn_dlc(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -103,7 +103,7 @@ fn spawn_dlc(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent.spawn_bundle(CurrentArrowBundle {
                 current_arrow: CurrentArrow,
                 sprite_bundle: SpriteBundle {
-                    texture: asset_server.load("whitearrow_box.png"),
+                    texture: asset_server.load("white-cycle.png"),
                     transform: Transform::from_scale(Vec3::splat(ARROW_SPRITE_SCALE))
                         //.with_translation(Vec3::new(-505.0, 600.0, 10.0)),
                         .with_translation(Vec3::new(0.0, 75.0, 0.0)),
@@ -159,7 +159,7 @@ fn update_lightbulb(
             && parent_circuit.0 .0.circuit.current().abs() > epsilon
         {
             //play circle pop sound
-            let sound_effect = asset_server.load("pop.ogg");
+            let sound_effect = asset_server.load("taishi-piano-note.ogg");
             audio.play(sound_effect);
 
             info!("Circle spawned");
@@ -264,7 +264,7 @@ fn update_current_arrow(
         let current = parent_circuit.0.circuit.current();
         transform.rotation = Quat::mul_quat(
             transform.rotation,
-            Quat::from_rotation_z(-current as f32 * 0.1),
+            Quat::from_rotation_z(current as f32 * 0.1),
         );
         let epsilon = 0.01;
         if current.abs() > epsilon {

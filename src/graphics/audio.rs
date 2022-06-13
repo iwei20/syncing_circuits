@@ -1,7 +1,7 @@
 use bevy::{audio::AudioSink, prelude::*};
 use crate::graphics::DLRCCircuit;
 
-pub struct MusicController(Handle<AudioSink>);
+pub struct MusicController(Handle<AudioSink>, Handle<AudioSink>);
 
 pub struct MusicPlugin;
 
@@ -18,17 +18,24 @@ fn setup_audio(
     audio: Res<Audio>,
     audio_sinks: Res<Assets<AudioSink>>,
 ) {
-    let music = asset_server.load("still_woozy_x_los_retros_style_instrumental_daydreams.ogg");
-    let handle = audio_sinks.get_handle(
+    let static_noise = asset_server.load("01-White-Noise-10min-popgone.ogg");
+    let music = asset_server.load("taishi-reverie-loop.ogg");
+    let static_noise_handle = audio_sinks.get_handle(
+        audio.play_with_settings(
+            static_noise,
+            PlaybackSettings::LOOP,
+        ));
+    let music_handle = audio_sinks.get_handle(
         audio.play_with_settings(
             music,
             PlaybackSettings::LOOP,
         ));
-    commands.insert_resource(MusicController(handle));
+    commands.insert_resource(MusicController(static_noise_handle, music_handle));
 }
 
 fn volume(
     query_circs: Query<&DLRCCircuit>,
+    time: Res<Time>,
     audio_sinks: Res<Assets<AudioSink>>,
     music_controller: Res<MusicController>,
 ) {
@@ -40,7 +47,9 @@ fn volume(
     }
     power_avg /= circ_amount as f64;
     if let Some(sink) = audio_sinks.get(&music_controller.0) {
-        sink.set_volume(0.5 + (power_avg as f32).min(0.5));
+        let mut max_vol = 0.03f32;
+        max_vol = max_vol - max_vol.powf(0.05f32 * time.seconds_since_startup() as f32 + 1f32);
+        sink.set_volume(max_vol - (power_avg as f32).min(max_vol));
     }
 }
 
