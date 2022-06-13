@@ -1,5 +1,5 @@
-use bevy::{audio::AudioSink, prelude::*};
 use crate::graphics::DLRCCircuit;
+use bevy::{audio::AudioSink, prelude::*};
 
 pub struct MusicController(Handle<AudioSink>, Handle<AudioSink>);
 
@@ -7,11 +7,11 @@ pub struct MusicPlugin;
 
 impl Plugin for MusicPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(setup_audio)
-            .add_system(volume);
+        app.add_startup_system(setup_audio).add_system(volume);
     }
 }
 
+/// Initializes audio to be used later
 fn setup_audio(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -20,19 +20,14 @@ fn setup_audio(
 ) {
     let static_noise = asset_server.load("01-White-Noise-10min-popgone.ogg");
     let music = asset_server.load("taishi-reverie-loop.ogg");
-    let static_noise_handle = audio_sinks.get_handle(
-        audio.play_with_settings(
-            static_noise,
-            PlaybackSettings::LOOP,
-        ));
-    let music_handle = audio_sinks.get_handle(
-        audio.play_with_settings(
-            music,
-            PlaybackSettings::LOOP,
-        ));
+    let static_noise_handle =
+        audio_sinks.get_handle(audio.play_with_settings(static_noise, PlaybackSettings::LOOP));
+    let music_handle =
+        audio_sinks.get_handle(audio.play_with_settings(music, PlaybackSettings::LOOP));
     commands.insert_resource(MusicController(static_noise_handle, music_handle));
 }
 
+/// implements dynamic volume music/sound effects
 fn volume(
     query_circs: Query<&DLRCCircuit>,
     time: Res<Time>,
@@ -47,9 +42,8 @@ fn volume(
     }
     power_avg /= circ_amount as f64;
     if let Some(sink) = audio_sinks.get(&music_controller.0) {
-        let mut max_vol = 0.03f32;
+        let mut max_vol = 0.04f32;
         max_vol = max_vol - max_vol.powf(0.05f32 * time.seconds_since_startup() as f32 + 1f32);
         sink.set_volume(max_vol - (power_avg as f32).min(max_vol));
     }
 }
-

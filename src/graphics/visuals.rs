@@ -54,9 +54,11 @@ pub struct DLRCCircuit(pub DisconnectLightCircuitCalculator);
 pub struct CurrentTimePlot(pub Vec<(f64, f64)>);
 
 #[derive(Component)]
+/// The sign of the current that spawned the last circle
 pub struct SpawnedThisSignum(pub f64, pub bool);
 
 #[derive(Component)]
+/// The rate of change of current at the time the last circle was spawned
 pub struct LastCurrentRateSignum(pub f64);
 
 const ARROW_SPRITE_SCALE: f32 = 0.45;

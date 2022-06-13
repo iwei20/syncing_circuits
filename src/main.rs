@@ -17,6 +17,7 @@ fn main() {
         .run();
 }
 
+/// Creates to see the simulation
 fn start_camera(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 }
