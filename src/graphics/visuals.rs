@@ -162,7 +162,6 @@ fn update_lightbulb(
             let sound_effect = asset_server.load("taishi-piano-note.ogg");
             audio.play(sound_effect);
 
-            info!("Circle spawned");
             let starting_radius = 10.0;
             let circle_builder = GeometryBuilder::new().add(&shapes::Circle {
                 radius: starting_radius,
@@ -210,7 +209,7 @@ pub struct CircleRadius(pub f32);
 /// # Returns
 /// A floating point number representing what the alpha value should be
 fn calculate_circle_alpha(radius: f32) -> f32 {
-    (-radius / 20.0).exp()
+    (-radius / 10.0).exp()
 }
 
 /// Expands the radius of all circles, despawning them if they get too big
@@ -219,8 +218,7 @@ fn expand_circles(
     mut query: Query<(Entity, &mut CircleRadius, &mut Path, &mut DrawMode)>,
 ) {
     for (entity, mut radius, mut path, mut draw_mode) in query.iter_mut() {
-        if radius.0 > 100.0 {
-            info!("Circle despawned");
+        if radius.0 > 50.0 {
             commands.entity(entity).despawn();
         }
         *radius = CircleRadius(radius.0 + 0.4);
