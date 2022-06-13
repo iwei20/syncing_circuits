@@ -11,6 +11,7 @@ impl Plugin for MusicPlugin {
     }
 }
 
+/// Initializes audio to be used later
 fn setup_audio(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -26,6 +27,7 @@ fn setup_audio(
     commands.insert_resource(MusicController(static_noise_handle, music_handle));
 }
 
+/// implements dynamic volume music/sound effects
 fn volume(
     query_circs: Query<&DLRCCircuit>,
     time: Res<Time>,
@@ -40,7 +42,7 @@ fn volume(
     }
     power_avg /= circ_amount as f64;
     if let Some(sink) = audio_sinks.get(&music_controller.0) {
-        let mut max_vol = 0.03f32;
+        let mut max_vol = 0.04f32;
         max_vol = max_vol - max_vol.powf(0.05f32 * time.seconds_since_startup() as f32 + 1f32);
         sink.set_volume(max_vol - (power_avg as f32).min(max_vol));
     }

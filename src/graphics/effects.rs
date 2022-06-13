@@ -1,3 +1,6 @@
+//!create the noise material as it is not super physics related and likely of not too much interest
+//!to you it will be sparse with documentation
+
 use bevy::{
     core::Time,
     ecs::{
@@ -51,6 +54,7 @@ pub struct ForegroundBundle {
 #[derive(Component)]
 pub struct Foreground;
 
+/// makes rectangle to house the noise shader
 fn spawn_foreground(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -73,6 +77,7 @@ fn spawn_foreground(
     });
 }
 
+/// scales the noise texture with size of the screen
 fn resize_notificator(
     resize_event: Res<Events<WindowResized>>,
     mut query: Query<(&Foreground, &mut Transform)>,
